@@ -67,14 +67,17 @@ description: "Task list for 食材使い切り献立エージェント"
 
 - [ ] T013 [P] [US1] InventoryItem モデル/テーブルを追加（`src/server/db/schema.ts`）
 - [ ] T014 [P] [US1] MealPlan・Recipe・ShoppingList モデル/テーブルを追加（`src/server/db/schema.ts`）
-- [ ] T015 [US1] 在庫解釈ツール（自由発話→在庫の構造化）を実装（`src/server/agent/tools/parse-inventory.ts`）
+- [ ] T015 [US1] 在庫解釈ツール（自由発話→在庫の構造化）を実装。曖昧・不完全な入力（例:「野菜いろいろ」「少し」）は確認質問をするか、合理的な前提を置いて明示する（FR-024）（`src/server/agent/tools/parse-inventory.ts`）
 - [ ] T016 [US1] 献立計画ツール（使い切り最適化・夕食1食・1〜7日）を実装（`src/server/agent/tools/plan-meals.ts`）
 - [ ] T017 [US1] 買い物リスト生成（手持ちとの差分＝不足分のみ）を実装（`src/server/services/shopping-list.ts`）
 - [ ] T018 [US1] 在庫の確認・修正チャットフロー（追加/削除/数量調整）を実装（`src/server/agent/tools/edit-inventory.ts`）
 - [ ] T019 [US1] 日数指定のバリデーション（1〜7、範囲外は上限内へ案内 FR-031）を実装（`src/server/services/plan-request.ts`）
 - [ ] T020 [US1] チャット・献立表示・買い物リストの UI を実装（`src/components/Chat.tsx`, `src/components/MealPlanView.tsx`, `src/components/ShoppingList.tsx`）
+- [ ] T020a [US1] 献立確定アクション（MealPlan を confirmed 化）と、確定時に使用予定分を在庫から減算（FR-027, data-model §3）を実装（`src/server/agent/tools/confirm-plan.ts`, `src/server/services/inventory-lifecycle.ts`）
+- [ ] T020b [US1] 買い物リスト分の購入記録→在庫へ加算し、提示量を超えて購入した余剰を次回へ持ち越し（FR-028）を実装（`src/server/agent/tools/record-purchase.ts`, `src/server/services/inventory-lifecycle.ts`）
+- [ ] T020c [US1] 献立計画に日持ち考慮を実装（傷みやすい食材を早い日に配置 FR-029／日持ち超過の提案時に「早めに使う・冷凍を検討」の短い注意を付与 FR-030）（`src/server/agent/tools/plan-meals.ts`, `src/server/services/shelf-life.ts`）
 
-**Checkpoint**: US1 が単独で機能・テスト可能（回避制約なしの状態で）
+**Checkpoint**: US1 が単独で機能・テスト可能（回避制約なしの状態で）。在庫が確定→減算→購入→持ち越しで循環する
 
 ---
 
@@ -135,7 +138,7 @@ description: "Task list for 食材使い切り献立エージェント"
 **Independent Test**: 提案の根拠を開き、使い切り対象・回避食材・好み反映が読み取れることを確認。
 
 - [ ] T033 [P] [US5] Rationale の生成（使い切り対象・回避食材・好み反映）を実装（`src/server/services/rationale.ts`）
-- [ ] T034 [US5] 根拠パネル UI（献立に紐づく根拠表示）を実装（`src/components/RationalePanel.tsx`）
+- [ ] T034 [US5] 根拠パネル UI（献立に紐づく根拠表示。味改善が行われた場合は FR-035 の根拠も表示）を実装（`src/components/RationalePanel.tsx`）
 
 **Checkpoint**: US1〜US5 が独立して機能
 
@@ -150,7 +153,7 @@ description: "Task list for 食材使い切り献立エージェント"
 - [ ] T035 [P] [US6] Rating（5段階＋任意コメント）モデルを追加（`src/server/db/schema.ts`）
 - [ ] T036 [P] [US6] FlavorFeedback・PreferenceProfile を JSONB で保存するモデルを追加（`src/server/db/schema.ts`）
 - [ ] T037 [US6] 評価＋任意コメント入力 UI を実装（`src/components/RatingForm.tsx`）
-- [ ] T038 [US6] コメントの味の感想→具体改善への翻訳と好み傾向の学習を実装（`src/server/services/learning.ts`）
+- [ ] T038 [US6] コメントの味の感想→具体改善への翻訳と好み傾向の学習を実装。翻訳の根拠（どの感想→どの調整か, FR-035）を保持し提示できるようにする（`src/server/services/learning.ts`）
 - [ ] T039 [US6] 好みプロファイルを提案時のプロンプトへ注入（`src/server/agent/prompt.ts`）
 
 **Checkpoint**: US1〜US6 が独立して機能
@@ -207,7 +210,7 @@ description: "Task list for 食材使い切り献立エージェント"
 ### User Story Dependencies
 
 - **US1 (P1)**: Foundational 後に着手可。他ストーリー非依存
-- **US2 (P1)**: Foundational 後に着手可。独立テスト可。US1 の提案経路に guardrail（T024）を差し込むと安全性が完成する（US1 は回避制約なしで独立テスト可）
+- **US2 (P1)**: Foundational 後に着手可。独立テスト可。**安全上クリティカル（SC-001=0%）のため、実利用者へ提案を出す前に必ず US1 の提案経路へ guardrail（T024）を統合すること**（US1 の独立テスト自体は回避制約なしで可）。MVP デモを実利用に近い形で行う場合は US1 と US2 を同時に仕上げる
 - **US3〜US5 (P2)**: Foundational 後に着手可。US1 の献立/根拠に統合するが独立テスト可
 - **US6〜US8 (P3)**: Foundational 後に着手可。US1 のレシピ/評価に紐づくが独立テスト可
 
