@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(*)",
+      "WebSearch(*)",
+      "Read(*)",
+      "Edit(*)",
+      "Write(*)",
+      "Skill(create-adr)",
+      "Skill(create-issue)",
+      "Skill(resolve-issue)",
+      "Skill(create-pr)"
+    ],
+    "deny": ["Read(./.env)", "Read(./.env.*)"],
+    "ask": ["Bash(git push:*)", "Bash(git revert:*)"]
+  },
+  "enabledPlugins": {
+    "code-review@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "claude-plugins-official": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/anthropics/claude-plugins-official.git"
+      }
+    }
+  }
+}
