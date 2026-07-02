@@ -1,0 +1,9 @@
+# このファイルを terraform.tfvars にコピーして値を埋める（terraform.tfvars は git 管理外）
+project_id        = "mottain-ai"
+region            = "asia-northeast1"
+service_name      = "mottain-ai"
+repository_id     = "mottain-ai"
+github_repository = "ymtdir/mottain-ai"
+
+# DB は必要になったら true にして apply する
+enable_cloud_sql = false

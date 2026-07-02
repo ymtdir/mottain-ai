@@ -14,3 +14,47 @@ uvx specify init .
 
 - 使用するAIアシスタント
 - スクリプトタイプ
+
+## インフラ / デプロイ
+
+インフラは Terraform で管理し（`infra/terraform/`）、`main` への push で GitHub Actions が Cloud Run へ自動デプロイする。設計判断は [`docs/adr/04-infra-cloud-run.md`](docs/adr/04-infra-cloud-run.md) を参照。
+
+### 前提
+
+- `gcloud`（認証済み）、`terraform`（tfenv 等）、`docker`
+- GCP プロジェクト `mottain-ai`（課金有効）
+
+### ブートストラップ（初回のみ）
+
+```sh
+# 操作対象プロジェクトと Terraform 用の認証（ADC）
+gcloud config set project mottain-ai
+gcloud auth application-default login
+gcloud auth application-default set-quota-project mottain-ai
+
+# state 用バケットを作成（versions.tf の backend と名前を合わせる）
+gcloud storage buckets create gs://mottain-ai-tfstate --location=asia-northeast1
+```
+
+### Terraform の適用
+
+```sh
+cd infra/terraform
+cp terraform.tfvars.example terraform.tfvars   # 必要なら値を編集
+terraform init
+terraform plan
+terraform apply
+```
+
+DB が必要になったら `terraform.tfvars` の `enable_cloud_sql = true` にして再度 `apply` する。
+
+### CD の有効化（初回のみ）
+
+`terraform apply` の出力値を GitHub の Actions Variables に登録する（Settings → Secrets and variables → Actions → Variables）。
+
+| 変数名         | 値の取得元（terraform output）        |
+| -------------- | ------------------------------------- |
+| `WIF_PROVIDER` | `workload_identity_provider`          |
+| `DEPLOYER_SA`  | `deployer_service_account`            |
+
+以降、`main` への push で `app/` のイメージがビルド・push され、Cloud Run へデプロイされる。
