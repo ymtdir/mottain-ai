@@ -1,8 +1,14 @@
 # AGENTS.md
 
-このプロジェクトの規約・開発フローの概要。詳細は各参照先を確認すること。
+このプロジェクトの開発に関する規約・フロー・原則の詳細は以下を参照する。
 
-## 開発フロー
+## 開発憲章
+
+原則・ガバナンスは開発憲章を正とする。
+
+→ [`.specify/memory/constitution.md`](.specify/memory/constitution.md)
+
+## 開発ワークフロー
 
 ### 機能開発（Spec Kit）
 
@@ -23,6 +29,8 @@
 3. `/create-pr` — PR を作成
 
 ## コミット規約
+
+Conventional Commits に従い、作業単位でアトミックに行う。
 
 → [`.claude/rules/commit-conventions.md`](.claude/rules/commit-conventions.md)
 
