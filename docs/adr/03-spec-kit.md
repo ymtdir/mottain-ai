@@ -20,7 +20,10 @@ AI エージェント（Claude Code）主体で開発を進めるが、思いつ
 
 「仕様駆動開発の基盤として GitHub Spec Kit を採用する。`specify` CLI で本リポジトリに初期化し、仕様→計画→タスク→実装のフェーズを Claude Code のスラッシュコマンドで進める。生成される spec / plan / tasks はリポジトリに含めて git 管理する。」
 
-github-toolkit（ADR 02）とは補完関係で、Spec Kit が計画〜実装、github-toolkit が Issue/PR/コミット運用を担う。
+github-toolkit（ADR 02）とは補完関係で、役割を以下のように分担する:
+
+- **Spec Kit**: 新機能開発（仕様 → 計画 → タスク → 実装）
+- **github-toolkit**: 単発の作業（バグ修正・UI 改善・リファクタリング・小さな機能追加など、仕様を立てる必要のないもの）
 
 ### 理由
 
