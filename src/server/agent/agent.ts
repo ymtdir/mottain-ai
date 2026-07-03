@@ -6,8 +6,9 @@ import { interpretInventoryTool } from "./tools/interpret-inventory"
 import { generateMealPlanTool } from "./tools/generate-meal-plan"
 import { updateConstraintsTool } from "./tools/update-constraints"
 import { reviseMealPlanTool } from "./tools/revise-meal-plan"
+import { learnPreferenceTool } from "./tools/learn-preference"
 
-/** ツールの使い方をエージェントに指示する運用プロンプト（US1 + US2 + US3） */
+/** ツールの使い方をエージェントに指示する運用プロンプト（US1〜US4） */
 const OPERATION_INSTRUCTIONS = `
 ## 進め方
 1. ユーザーが手持ち食材を伝えたら、interpretInventory ツールで在庫を構造化し、読み取った内容を簡潔に確認する。
@@ -16,7 +17,8 @@ const OPERATION_INSTRUCTIONS = `
 4. violationNote がある場合は、回避できなかった旨と代替案（例: 別の献立パターン）を丁寧に伝える。
 5. ユーザーがアレルギー・苦手食材を伝えたら、updateConstraints ツールで登録する（add / remove / replace）。
 6. ユーザーが献立の変更を依頼したら（「○日目を魚料理に」「もっと簡単に」など）、reviseMealPlan ツールで対象日だけを差し替える。変更理由に好み（「辛いのが苦手」など）が含まれていれば preferenceNote に抽出して渡す。
-7. 在庫が曖昧・不足していても、確認の質問をするか合理的な前提を置いて進める。`
+7. ユーザーが好み・味の感想を述べたら（「辛いのが苦手」「この生姜焼きはしょっぱかった」など）、learnPreference ツールで記録する。抽象的な感想も具体調整に翻訳して永続化する。
+8. 在庫が曖昧・不足していても、確認の質問をするか合理的な前提を置いて進める。`
 
 export async function runAgent(messages: ModelMessage[]) {
   const ctx = await loadUserContext()
@@ -31,6 +33,7 @@ export async function runAgent(messages: ModelMessage[]) {
       generateMealPlan: generateMealPlanTool,
       updateConstraints: updateConstraintsTool,
       reviseMealPlan: reviseMealPlanTool,
+      learnPreference: learnPreferenceTool,
     },
     // ツール呼び出し後にモデルが応答を続けられるよう複数ステップを許可する
     stopWhen: stepCountIs(5),
