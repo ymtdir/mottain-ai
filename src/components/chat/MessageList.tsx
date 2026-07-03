@@ -1,9 +1,9 @@
-import { isTextUIPart  } from "ai";
-import type {UIMessage} from "ai";
+import { isTextUIPart } from "ai"
+import type { UIMessage } from "ai"
 
 type Props = {
-  messages: UIMessage[];
-};
+  messages: UIMessage[]
+}
 
 export function MessageList({ messages }: Props) {
   if (messages.length === 0) {
@@ -11,14 +11,17 @@ export function MessageList({ messages }: Props) {
       <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
         在庫を伝えて、献立と買い物リストを作りましょう。
       </div>
-    );
+    )
   }
 
   return (
     <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
       {messages.map((message) => {
-        const text = message.parts.filter(isTextUIPart).map((p) => p.text).join("");
-        if (!text) return null;
+        const text = message.parts
+          .filter(isTextUIPart)
+          .map((p) => p.text)
+          .join("")
+        if (!text) return null
         return (
           <div
             key={message.id}
@@ -34,8 +37,8 @@ export function MessageList({ messages }: Props) {
               {text}
             </div>
           </div>
-        );
+        )
       })}
     </div>
-  );
+  )
 }
