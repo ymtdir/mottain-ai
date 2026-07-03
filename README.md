@@ -69,6 +69,44 @@ pnpm format        # Prettier（フォーマット適用）
 pnpm test          # Vitest（単体・統合テスト）
 ```
 
+### ローカル開発環境の初回セットアップ
+
+#### 1. PostgreSQL を起動する
+
+```sh
+docker compose up -d
+```
+
+接続情報: `postgresql://mottain:mottain@localhost:5432/mottain`
+
+#### 2. 環境変数を設定する
+
+`.env.example` をコピーして `.env.local` を作成し、値を埋める。
+
+```sh
+cp .env.example .env.local
+```
+
+| 変数名 | 説明 | 例 |
+| --- | --- | --- |
+| `DATABASE_URL` | PostgreSQL 接続文字列 | `postgresql://mottain:mottain@localhost:5432/mottain` |
+| `GOOGLE_CLOUD_PROJECT` | Gemini を使う GCP プロジェクト ID | `mottain-ai` |
+| `GOOGLE_CLOUD_LOCATION` | Vertex AI のリージョン（省略時: `asia-northeast1`） | `asia-northeast1` |
+
+#### 3. Google Cloud 認証（ADC）を設定する
+
+```sh
+gcloud auth application-default login
+gcloud auth application-default set-quota-project <プロジェクトID>
+```
+
+#### 4. DB マイグレーションを実行する
+
+```sh
+pnpm drizzle-kit generate   # SQL マイグレーションファイルを生成
+pnpm drizzle-kit migrate    # DB に適用
+```
+
 ---
 
 ## セットアップ
