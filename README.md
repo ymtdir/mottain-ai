@@ -41,12 +41,12 @@
 
 ## 差別化ポイント
 
-| ポイント | 内容 |
-|----------|------|
-| 透明性 | 提案の根拠を常に確認できる。なぜこの献立なのかがわかる |
-| ガードレール | アレルギー・苦手食材は使い切り最適化や好みより優先され、絶対に混入しない |
-| 好みの学習 | 「パンチが足りない」などの抽象的な感覚から具体的な改善案（調味料・分量の調整）を提示し学習する |
-| 余剰の持ち越し | 買い物リストより多く買った分は次回の手持ち在庫として自動的に持ち越される |
+| ポイント       | 内容                                                                                           |
+| -------------- | ---------------------------------------------------------------------------------------------- |
+| 透明性         | 提案の根拠を常に確認できる。なぜこの献立なのかがわかる                                         |
+| ガードレール   | アレルギー・苦手食材は使い切り最適化や好みより優先され、絶対に混入しない                       |
+| 好みの学習     | 「パンチが足りない」などの抽象的な感覚から具体的な改善案（調味料・分量の調整）を提示し学習する |
+| 余剰の持ち越し | 買い物リストより多く買った分は次回の手持ち在庫として自動的に持ち越される                       |
 
 ## プロダクト前提
 
@@ -54,6 +54,20 @@
 - Web アプリとして提供する。モバイル対応は範囲外（余裕があれば任意）
 - AI コアは Gemini Enterprise Agent Platform / Gemini を使用（[ADR-06](docs/adr/06-ai-core-gemini-enterprise-agent-platform.md)）
 - 過剰な作り込みを避け、個人開発で回せる軽さを保つ（[開発憲章](.specify/memory/constitution.md) 原則 I）
+
+---
+
+## 開発
+
+```sh
+pnpm install       # 依存パッケージをインストール
+pnpm dev           # 開発サーバー起動 (http://localhost:3000)
+pnpm build         # プロダクションビルド
+pnpm typecheck     # 型チェック
+pnpm lint          # ESLint
+pnpm format        # Prettier（フォーマット適用）
+pnpm test          # Vitest（単体・統合テスト）
+```
 
 ---
 
@@ -109,9 +123,9 @@ DB が必要になったら `terraform.tfvars` の `enable_cloud_sql = true` に
 
 `terraform apply` の出力値を GitHub の Actions Variables に登録する（Settings → Secrets and variables → Actions → Variables）。
 
-| 変数名         | 値の取得元（terraform output）        |
-| -------------- | ------------------------------------- |
-| `WIF_PROVIDER` | `workload_identity_provider`          |
-| `DEPLOYER_SA`  | `deployer_service_account`            |
+| 変数名         | 値の取得元（terraform output） |
+| -------------- | ------------------------------ |
+| `WIF_PROVIDER` | `workload_identity_provider`   |
+| `DEPLOYER_SA`  | `deployer_service_account`     |
 
 以降、`main` への push で `app/` のイメージがビルド・push され、Cloud Run へデプロイされる。

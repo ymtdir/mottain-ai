@@ -142,6 +142,21 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
 
+# TanStack Start
+.tanstack
+.vinxi
+.wrangler
+.output
+dist-ssr
+__unconfig*
+
+# macOS
+.DS_Store
+
+# Local files
+*.local
+todos.json
+
 # Terraform
 **/.terraform/*
 *.tfstate
