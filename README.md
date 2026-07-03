@@ -93,14 +93,20 @@ cp .env.example .env.local
 | `GOOGLE_CLOUD_PROJECT` | Gemini を使う GCP プロジェクト ID | `mottain-ai` |
 | `GOOGLE_CLOUD_LOCATION` | Vertex AI のリージョン（省略時: `asia-northeast1`） | `asia-northeast1` |
 
-#### 3. Google Cloud 認証（ADC）を設定する
+#### 3. Vertex AI API を有効化する（初回のみ）
+
+```sh
+gcloud services enable aiplatform.googleapis.com --project=<プロジェクトID>
+```
+
+#### 4. Google Cloud 認証（ADC）を設定する
 
 ```sh
 gcloud auth application-default login
 gcloud auth application-default set-quota-project <プロジェクトID>
 ```
 
-#### 4. DB マイグレーションを実行する
+#### 5. DB マイグレーションを実行する
 
 ```sh
 pnpm drizzle-kit generate   # SQL マイグレーションファイルを生成
