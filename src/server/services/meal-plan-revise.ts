@@ -21,7 +21,7 @@ const replacementRecipeSchema = z.object({
       z.object({
         name: z.string().describe("食材名"),
         amount: z.string().nullable().describe("分量の目安。不明なら null"),
-      }),
+      })
     )
     .describe("必要な食材と分量"),
   steps: z.array(z.string()).describe("調理手順の要点"),
@@ -36,7 +36,7 @@ function buildRevisionPrompt(
   currentMealPlan: MealPlan,
   request: RevisionRequest,
   inventory: InventoryItem[],
-  avoidanceItems?: AvoidanceConstraint[],
+  avoidanceItems?: AvoidanceConstraint[]
 ): string {
   const currentMeals = currentMealPlan.meals
     .map((m) => {
@@ -48,7 +48,9 @@ function buildRevisionPrompt(
 
   const inventoryText =
     inventory.length > 0
-      ? inventory.map((i) => `- ${i.name}${i.quantity ? `（${i.quantity}）` : ""}`).join("\n")
+      ? inventory
+          .map((i) => `- ${i.name}${i.quantity ? `（${i.quantity}）` : ""}`)
+          .join("\n")
       : "（手持ちの申告なし）"
 
   const targetDaysText = request.targetDays.join("・") + "日目"
@@ -73,7 +75,8 @@ function buildRevisionPrompt(
   if (avoidanceItems && avoidanceItems.length > 0) {
     const list = avoidanceItems
       .map((a) => {
-        const aliases = a.aliases.length > 0 ? `（別名: ${a.aliases.join("、")}）` : ""
+        const aliases =
+          a.aliases.length > 0 ? `（別名: ${a.aliases.join("、")}）` : ""
         const label = a.type === "allergy" ? "アレルギー" : "苦手"
         return `- ${a.name}${aliases}【${label}】`
       })
@@ -82,13 +85,13 @@ function buildRevisionPrompt(
       "",
       "## 絶対使用禁止の食材（ハード制約・例外なし）",
       list,
-      "上記食材はいかなる料理にも使わないこと。",
+      "上記食材はいかなる料理にも使わないこと。"
     )
   }
 
   parts.push(
     "",
-    `変更対象の日（${targetDaysText}）の新しいレシピだけを返してください。`,
+    `変更対象の日（${targetDaysText}）の新しいレシピだけを返してください。`
   )
 
   return parts.join("\n")
@@ -113,7 +116,7 @@ export async function reviseMealPlan(params: {
       currentMealPlan,
       request,
       inventory,
-      avoidanceItems,
+      avoidanceItems
     ),
   })
 
@@ -121,14 +124,20 @@ export async function reviseMealPlan(params: {
   const replacementByDay = new Map<number, Recipe>(
     object.meals.map((m) => [
       m.day,
-      { ...m, ingredients: m.ingredients.map((i) => ({ ...i, amount: i.amount ?? null })) },
-    ]),
+      {
+        ...m,
+        ingredients: m.ingredients.map((i) => ({
+          ...i,
+          amount: i.amount ?? null,
+        })),
+      },
+    ])
   )
 
   const updatedMeals = currentMealPlan.meals.map((meal) =>
     replacementByDay.has(meal.day)
       ? { ...(replacementByDay.get(meal.day) as Recipe) }
-      : meal,
+      : meal
   )
 
   return {
