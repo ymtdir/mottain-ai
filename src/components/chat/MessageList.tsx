@@ -1,8 +1,37 @@
-import { isTextUIPart } from "ai"
+import { isTextUIPart, isToolUIPart, getToolName } from "ai"
 import type { UIMessage } from "ai"
+import { MealPlanCard } from "@/components/meal-plan/MealPlanCard"
+import { ShoppingListCard } from "@/components/meal-plan/ShoppingListCard"
+import type { MealPlan } from "@/server/services/meal-plan"
+import type { ShoppingList } from "@/server/services/shopping-list"
 
 type Props = {
   messages: UIMessage[]
+}
+
+/** generateMealPlan ツールの出力構造 */
+type MealPlanToolOutput = {
+  mealPlan: MealPlan
+  shoppingList: ShoppingList
+  dayNote: string | null
+}
+
+function TextBubble({ text, role }: { text: string; role: UIMessage["role"] }) {
+  return (
+    <div
+      className={`flex ${role === "user" ? "justify-end" : "justify-start"}`}
+    >
+      <div
+        className={`max-w-[80%] rounded-lg px-4 py-2 text-sm whitespace-pre-wrap ${
+          role === "user"
+            ? "bg-primary text-primary-foreground"
+            : "bg-muted text-foreground"
+        }`}
+      >
+        {text}
+      </div>
+    </div>
+  )
 }
 
 export function MessageList({ messages }: Props) {
@@ -16,29 +45,40 @@ export function MessageList({ messages }: Props) {
 
   return (
     <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
-      {messages.map((message) => {
-        const text = message.parts
-          .filter(isTextUIPart)
-          .map((p) => p.text)
-          .join("")
-        if (!text) return null
-        return (
-          <div
-            key={message.id}
-            className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-          >
-            <div
-              className={`max-w-[80%] rounded-lg px-4 py-2 text-sm whitespace-pre-wrap ${
-                message.role === "user"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-foreground"
-              }`}
-            >
-              {text}
-            </div>
-          </div>
-        )
-      })}
+      {messages.map((message) => (
+        <div key={message.id} className="flex flex-col gap-3">
+          {message.parts.map((part, index) => {
+            if (isTextUIPart(part)) {
+              if (!part.text) return null
+              return (
+                <TextBubble key={index} text={part.text} role={message.role} />
+              )
+            }
+
+            // 献立生成ツールの結果を献立カード・買い物リストとして描画する
+            if (
+              isToolUIPart(part) &&
+              getToolName(part) === "generateMealPlan" &&
+              part.state === "output-available"
+            ) {
+              const output = part.output as MealPlanToolOutput
+              return (
+                <div key={index} className="flex flex-col gap-3">
+                  {output.dayNote && (
+                    <p className="text-xs text-muted-foreground">
+                      {output.dayNote}
+                    </p>
+                  )}
+                  <MealPlanCard mealPlan={output.mealPlan} />
+                  <ShoppingListCard shoppingList={output.shoppingList} />
+                </div>
+              )
+            }
+
+            return null
+          })}
+        </div>
+      ))}
     </div>
   )
 }
