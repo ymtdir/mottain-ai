@@ -156,9 +156,16 @@ const generatedMealPlanSchema = z.object({
   meals: z.array(generatedRecipeSchema),
 })
 
+export type AvoidanceConstraint = {
+  name: string
+  aliases: string[]
+  type: "allergy" | "dislike"
+}
+
 function buildMealPlanPrompt(
   inventory: InventoryItem[],
   days: number,
+  avoidanceItems?: AvoidanceConstraint[],
   userContext?: string
 ): string {
   const inventoryText =
@@ -184,6 +191,23 @@ function buildMealPlanPrompt(
     `- 必ず${days}日分、1 日 1 品の夕食を生成する。`,
   ]
 
+  if (avoidanceItems && avoidanceItems.length > 0) {
+    const avoidanceList = avoidanceItems
+      .map((a) => {
+        const aliases =
+          a.aliases.length > 0 ? `（別名: ${a.aliases.join("、")}）` : ""
+        const label = a.type === "allergy" ? "アレルギー" : "苦手"
+        return `- ${a.name}${aliases}【${label}】`
+      })
+      .join("\n")
+    parts.push(
+      "",
+      "## 絶対使用禁止の食材（ハード制約・例外なし）",
+      avoidanceList,
+      "上記食材はいかなる料理にも使わないこと。これらが必要な料理は選ばないこと。"
+    )
+  }
+
   if (userContext && userContext.trim() !== "") {
     parts.push("", "## ユーザーの文脈", userContext)
   }
@@ -199,14 +223,15 @@ function buildMealPlanPrompt(
 export async function generateMealPlan(params: {
   inventory: InventoryItem[]
   days: number
+  avoidanceItems?: AvoidanceConstraint[]
   userContext?: string
 }): Promise<MealPlan> {
-  const { inventory, days, userContext } = params
+  const { inventory, days, avoidanceItems, userContext } = params
 
   const { object } = await generateObject({
     model: geminiFlash(),
     schema: generatedMealPlanSchema,
-    prompt: buildMealPlanPrompt(inventory, days, userContext),
+    prompt: buildMealPlanPrompt(inventory, days, avoidanceItems, userContext),
   })
 
   const meals: Recipe[] = object.meals.map((meal, index) => ({
