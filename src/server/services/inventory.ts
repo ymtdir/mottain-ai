@@ -119,7 +119,7 @@ export function classifyPerishability(name: string): Perishability {
 
 /** 品目名を正規化する（前後空白の除去・全角空白の畳み込み） */
 export function normalizeName(name: string): string {
-  return name.replace(/　/g, " ").trim()
+  return name.replace(/\u3000/g, " ").trim()
 }
 
 /**
