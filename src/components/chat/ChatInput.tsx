@@ -1,4 +1,5 @@
 import type { FormEvent } from "react"
+import { useRef } from "react"
 import { Button } from "@/components/ui/button"
 
 type Props = {
@@ -14,6 +15,8 @@ export function ChatInput({
   onInputChange,
   onSubmit,
 }: Props) {
+  const isComposing = useRef(false)
+
   return (
     <form onSubmit={onSubmit} className="flex gap-2 border-t p-4">
       <textarea
@@ -22,8 +25,14 @@ export function ChatInput({
         value={input}
         placeholder="在庫を伝えて献立を依頼しましょう（例: じゃがいも、人参、玉ねぎがあります。3日分の夕食を考えて）"
         onChange={(e) => onInputChange(e.target.value)}
+        onCompositionStart={() => {
+          isComposing.current = true
+        }}
+        onCompositionEnd={() => {
+          isComposing.current = false
+        }}
         onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
+          if (e.key === "Enter" && !e.shiftKey && !isComposing.current) {
             e.preventDefault()
             e.currentTarget.form?.requestSubmit()
           }
