@@ -34,6 +34,12 @@ Conventional Commits に従い、作業単位でアトミックに行う。
 
 → [`.claude/rules/commit-conventions.md`](.claude/rules/commit-conventions.md)
 
+## プロジェクト構造
+
+ディレクトリ構成・コロケーション方針・認証方式は以下を参照する。
+
+→ [`docs/project-structure.md`](docs/project-structure.md)
+
 ## 技術選定の記録（ADR）
 
 技術・アーキテクチャ上の決定は `docs/adr/` に ADR として残す。作成は `/create-adr` で行う。
