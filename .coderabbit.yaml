@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# GitHub 上の PR レビューを担う CodeRabbit の設定（ADR-12）。
+language: ja-JP
+reviews:
+  # chill: 重要な指摘に絞る。物足りなければ assertive に上げる。
+  profile: chill
+  high_level_summary: true
+  poem: true
+  auto_review:
+    enabled: true
+    drafts: false
+  # 自動生成ファイル・ロックファイルはレビュー対象外にする。
+  path_filters:
+    - "!**/routeTree.gen.ts"
+    - "!**/*.gen.ts"
+    - "!**/pnpm-lock.yaml"
+  path_instructions:
+    - path: "**/*.{ts,tsx}"
+      instructions: "TypeScript / React。型安全を重視し、docs/project-structure.md のコロケーション方針（テストは実装と同じ階層に置く）に沿っているか確認する。"
+chat:
+  auto_reply: true
