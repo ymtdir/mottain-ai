@@ -13,12 +13,12 @@ const extractedPreferenceSchema = z.object({
         attribute: z
           .string()
           .describe(
-            "味の属性キー（例: spiciness, saltiness, richness, flavor_depth）",
+            "味の属性キー（例: spiciness, saltiness, richness, flavor_depth）"
           ),
         adjustmentNote: z
           .string()
           .describe("具体的な調整内容（例: 辛さを抑える、塩分を控える）"),
-      }),
+      })
     )
     .describe("全体的な傾向の調整。特定レシピに限らない感想から抽出する"),
   recipeAdjustments: z
@@ -27,8 +27,10 @@ const extractedPreferenceSchema = z.object({
         recipeName: z.string().describe("対象のレシピ名"),
         adjustments: z
           .array(z.string())
-          .describe("具体的な調整内容のリスト（例: 塩を半量に、にんにくを追加）"),
-      }),
+          .describe(
+            "具体的な調整内容のリスト（例: 塩を半量に、にんにくを追加）"
+          ),
+      })
     )
     .describe("特定レシピへの調整。料理名が明示されている場合のみ抽出する"),
 })
@@ -37,7 +39,7 @@ const inputSchema = z.object({
   feedback: z
     .string()
     .describe(
-      "ユーザーが述べた好み・味の感想。例:「辛いのが苦手」「この生姜焼きはしょっぱかった」",
+      "ユーザーが述べた好み・味の感想。例:「辛いのが苦手」「この生姜焼きはしょっぱかった」"
     ),
   recipeName: z
     .string()

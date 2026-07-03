@@ -49,11 +49,11 @@ export function buildSystemPrompt(ctx: UserContext): string {
   if (ctx.avoidanceItems.length > 0) {
     const list = ctx.avoidanceItems
       .map(
-        (i) => `${i.name}（${i.type === "allergy" ? "アレルギー" : "苦手"}）`,
+        (i) => `${i.name}（${i.type === "allergy" ? "アレルギー" : "苦手"}）`
       )
       .join("、")
     parts.push(
-      `\n## 絶対に使用禁止の食材（ハード制約・例外なし）\n${list}\n上記は献立・買い物リストのいずれにも含めないでください。回避すると成立しない場合は混入させず、その旨と代替案を伝えてください。`,
+      `\n## 絶対に使用禁止の食材（ハード制約・例外なし）\n${list}\n上記は献立・買い物リストのいずれにも含めないでください。回避すると成立しない場合は混入させず、その旨と代替案を伝えてください。`
     )
   }
 
@@ -61,7 +61,7 @@ export function buildSystemPrompt(ctx: UserContext): string {
   if (!isEmptyPreference(ctx.preferenceMemory)) {
     const preferenceText = buildPreferenceContext(ctx.preferenceMemory)
     parts.push(
-      `\n## ユーザーの好み（ソフト・可能な範囲で反映）\n${preferenceText}`,
+      `\n## ユーザーの好み（ソフト・可能な範囲で反映）\n${preferenceText}`
     )
   }
 

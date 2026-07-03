@@ -33,7 +33,7 @@ export const EMPTY_PREFERENCE: PreferenceMemory = {
  */
 export function mergePreference(
   existing: PreferenceMemory,
-  update: Partial<PreferenceMemory>,
+  update: Partial<PreferenceMemory>
 ): PreferenceMemory {
   const tendencies = [...existing.globalTendencies]
   for (const incoming of update.globalTendencies ?? []) {
@@ -92,7 +92,7 @@ export async function upsertPreference(mem: PreferenceMemory): Promise<void> {
 }
 
 export async function applyPreferenceFeedback(
-  update: Partial<PreferenceMemory>,
+  update: Partial<PreferenceMemory>
 ): Promise<PreferenceMemory> {
   const existing = await getPreference()
   const merged = mergePreference(existing, update)

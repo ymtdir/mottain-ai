@@ -156,5 +156,5 @@ describe.skipIf(!hasCredentials)(
       })
       expect(mealPlan.meals).toHaveLength(2)
     }, 60_000)
-  },
+  }
 )
