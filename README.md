@@ -77,7 +77,7 @@ pnpm test          # Vitest（単体・統合テスト）
 docker compose up -d
 ```
 
-接続情報: `postgresql://mottain:mottain@localhost:5432/mottain`
+接続情報: `postgresql://mottain-ai:mottain-ai@localhost:5432/mottain-ai`
 
 #### 2. 環境変数を設定する
 
@@ -89,7 +89,7 @@ cp .env.example .env.local
 
 | 変数名 | 説明 | 例 |
 | --- | --- | --- |
-| `DATABASE_URL` | PostgreSQL 接続文字列 | `postgresql://mottain:mottain@localhost:5432/mottain` |
+| `DATABASE_URL` | PostgreSQL 接続文字列 | `postgresql://mottain-ai:mottain-ai@localhost:5432/mottain-ai` |
 | `GOOGLE_CLOUD_PROJECT` | Gemini を使う GCP プロジェクト ID | `mottain-ai` |
 | `GOOGLE_CLOUD_LOCATION` | Vertex AI のリージョン（省略時: `asia-northeast1`） | `asia-northeast1` |
 
