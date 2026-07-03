@@ -14,6 +14,15 @@ type MealPlanToolOutput = {
   mealPlan: MealPlan
   shoppingList: ShoppingList
   dayNote: string | null
+  violationNote: string | null
+}
+
+/** reviseMealPlan ツールの出力構造 */
+type RevisionToolOutput = {
+  updatedMealPlan: MealPlan
+  updatedShoppingList: ShoppingList
+  preferenceNote: string | null
+  violationNote: string | null
 }
 
 function TextBubble({ text, role }: { text: string; role: UIMessage["role"] }) {
@@ -69,8 +78,33 @@ export function MessageList({ messages }: Props) {
                       {output.dayNote}
                     </p>
                   )}
+                  {output.violationNote && (
+                    <p className="rounded bg-red-50 px-2 py-1 text-xs text-red-700">
+                      ⚠️ {output.violationNote}
+                    </p>
+                  )}
                   <MealPlanCard mealPlan={output.mealPlan} />
                   <ShoppingListCard shoppingList={output.shoppingList} />
+                </div>
+              )
+            }
+
+            // 献立変更ツールの結果を更新後の献立カードとして描画する
+            if (
+              isToolUIPart(part) &&
+              getToolName(part) === "reviseMealPlan" &&
+              part.state === "output-available"
+            ) {
+              const output = part.output as RevisionToolOutput
+              return (
+                <div key={index} className="flex flex-col gap-3">
+                  {output.violationNote && (
+                    <p className="rounded bg-red-50 px-2 py-1 text-xs text-red-700">
+                      ⚠️ {output.violationNote}
+                    </p>
+                  )}
+                  <MealPlanCard mealPlan={output.updatedMealPlan} />
+                  <ShoppingListCard shoppingList={output.updatedShoppingList} />
                 </div>
               )
             }
