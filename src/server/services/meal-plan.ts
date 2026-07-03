@@ -96,7 +96,7 @@ const PERISHABILITY_WEIGHT: Record<Perishability, number> = {
  */
 function perishabilityScore(
   recipe: Recipe,
-  inventoryByName: Map<string, InventoryItem>,
+  inventoryByName: Map<string, InventoryItem>
 ): { max: number; sum: number } {
   let max = 0
   let sum = 0
@@ -118,7 +118,7 @@ function perishabilityScore(
  */
 export function orderByPerishability(
   meals: Recipe[],
-  inventory: InventoryItem[],
+  inventory: InventoryItem[]
 ): Recipe[] {
   const inventoryByName = new Map(inventory.map((item) => [item.name, item]))
 
@@ -145,14 +145,11 @@ const generatedRecipeSchema = z.object({
       z.object({
         name: z.string().describe("食材名"),
         amount: z.string().nullable().describe("分量の目安。不明なら null"),
-      }),
+      })
     )
     .describe("必要な食材と分量"),
   steps: z.array(z.string()).describe("調理手順の要点"),
-  notes: z
-    .string()
-    .nullable()
-    .describe("日持ち注意など。無ければ null"),
+  notes: z.string().nullable().describe("日持ち注意など。無ければ null"),
 })
 
 const generatedMealPlanSchema = z.object({
@@ -162,14 +159,14 @@ const generatedMealPlanSchema = z.object({
 function buildMealPlanPrompt(
   inventory: InventoryItem[],
   days: number,
-  userContext?: string,
+  userContext?: string
 ): string {
   const inventoryText =
     inventory.length > 0
       ? inventory
           .map(
             (i) =>
-              `- ${i.name}${i.quantity ? `（${i.quantity}）` : ""}［日持ち: ${i.perishability}］`,
+              `- ${i.name}${i.quantity ? `（${i.quantity}）` : ""}［日持ち: ${i.perishability}］`
           )
           .join("\n")
       : "（手持ちの申告なし）"

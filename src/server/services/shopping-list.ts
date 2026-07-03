@@ -27,7 +27,7 @@ export type ShoppingList = {
  */
 export function computeShoppingList(
   mealPlan: MealPlan,
-  inventory: InventoryItem[],
+  inventory: InventoryItem[]
 ): ShoppingList {
   const inStock = new Set(inventory.map((item) => normalizeName(item.name)))
 

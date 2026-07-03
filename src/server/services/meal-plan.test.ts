@@ -40,7 +40,11 @@ describe("validateDays", () => {
 })
 
 describe("orderByPerishability", () => {
-  const recipe = (day: number, title: string, ingredientName: string): Recipe => ({
+  const recipe = (
+    day: number,
+    title: string,
+    ingredientName: string
+  ): Recipe => ({
     day,
     title,
     ingredients: [{ name: ingredientName, amount: null }],

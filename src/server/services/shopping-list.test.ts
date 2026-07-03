@@ -10,7 +10,7 @@ const item = (name: string): InventoryItem => ({
 })
 
 const plan = (
-  ingredients: { name: string; amount?: string | null }[],
+  ingredients: { name: string; amount?: string | null }[]
 ): MealPlan => ({
   periodDays: 1,
   meals: [
@@ -29,7 +29,11 @@ const plan = (
 
 describe("computeShoppingList", () => {
   it("手持ちにない食材だけを買い物リストに含める（INV-2/SC-002）", () => {
-    const mealPlan = plan([{ name: "豚肉" }, { name: "玉ねぎ" }, { name: "醤油" }])
+    const mealPlan = plan([
+      { name: "豚肉" },
+      { name: "玉ねぎ" },
+      { name: "醤油" },
+    ])
     const inventory = [item("玉ねぎ"), item("醤油")]
 
     const result = computeShoppingList(mealPlan, inventory)

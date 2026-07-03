@@ -18,7 +18,7 @@ const rawItemsSchema = z.object({
           .string()
           .nullable()
           .describe("概算数量。曖昧・不明なら null（例: 「少し」「3個」）"),
-      }),
+      })
     )
     .describe("発話から読み取った手持ちの食材・調味料"),
 })

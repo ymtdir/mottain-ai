@@ -18,7 +18,7 @@ const inputSchema = z.object({
       z.object({
         name: z.string().describe("食材・調味料の品目名"),
         quantity: z.string().nullable().describe("概算数量。不明なら null"),
-      }),
+      })
     )
     .describe("確認済みの手持ち食材（ユーザーの修正を反映した最終形）"),
   requestedDays: z

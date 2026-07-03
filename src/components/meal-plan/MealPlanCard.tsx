@@ -17,14 +17,14 @@ export function MealPlanCard({ mealPlan }: Props) {
             className="rounded-lg border bg-background p-3 text-sm"
           >
             <div className="flex items-baseline gap-2">
-              <span className="text-muted-foreground text-xs">
+              <span className="text-xs text-muted-foreground">
                 {meal.day} 日目
               </span>
               <span className="font-medium">{meal.title}</span>
             </div>
 
             {meal.ingredients.length > 0 && (
-              <p className="text-muted-foreground mt-2 text-xs">
+              <p className="mt-2 text-xs text-muted-foreground">
                 材料:{" "}
                 {meal.ingredients
                   .map((i) => (i.amount ? `${i.name}（${i.amount}）` : i.name))

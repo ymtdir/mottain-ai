@@ -137,7 +137,9 @@ export function normalizeInventory(raw: RawInventoryItem[]): InventoryItem[] {
     seen.add(name)
 
     const quantity =
-      entry.quantity == null ? null : normalizeName(String(entry.quantity)) || null
+      entry.quantity == null
+        ? null
+        : normalizeName(String(entry.quantity)) || null
 
     items.push({
       name,

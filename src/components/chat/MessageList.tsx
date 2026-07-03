@@ -18,7 +18,9 @@ type MealPlanToolOutput = {
 
 function TextBubble({ text, role }: { text: string; role: UIMessage["role"] }) {
   return (
-    <div className={`flex ${role === "user" ? "justify-end" : "justify-start"}`}>
+    <div
+      className={`flex ${role === "user" ? "justify-end" : "justify-start"}`}
+    >
       <div
         className={`max-w-[80%] rounded-lg px-4 py-2 text-sm whitespace-pre-wrap ${
           role === "user"
@@ -35,7 +37,7 @@ function TextBubble({ text, role }: { text: string; role: UIMessage["role"] }) {
 export function MessageList({ messages }: Props) {
   if (messages.length === 0) {
     return (
-      <div className="text-muted-foreground flex flex-1 items-center justify-center text-sm">
+      <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
         在庫を伝えて、献立と買い物リストを作りましょう。
       </div>
     )
@@ -49,11 +51,7 @@ export function MessageList({ messages }: Props) {
             if (isTextUIPart(part)) {
               if (!part.text) return null
               return (
-                <TextBubble
-                  key={index}
-                  text={part.text}
-                  role={message.role}
-                />
+                <TextBubble key={index} text={part.text} role={message.role} />
               )
             }
 
@@ -67,7 +65,7 @@ export function MessageList({ messages }: Props) {
               return (
                 <div key={index} className="flex flex-col gap-3">
                   {output.dayNote && (
-                    <p className="text-muted-foreground text-xs">
+                    <p className="text-xs text-muted-foreground">
                       {output.dayNote}
                     </p>
                   )}
