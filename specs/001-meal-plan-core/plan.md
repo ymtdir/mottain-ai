@@ -62,29 +62,7 @@ specs/001-meal-plan-core/
 
 ### Source Code (repository root)
 
-```text
-src/
-├── routes/                    # TanStack Start のルート（UI＋サーバー関数）
-│   ├── __root.tsx             # ルートレイアウト
-│   ├── index.tsx              # チャット主体の献立画面
-│   └── api/                   # チャット/エージェント呼び出しのサーバー関数
-├── server/
-│   ├── agent/                 # Vercel AI SDK エージェント定義とツール群
-│   │   ├── agent.ts           # 単一エージェント＋ツールループ
-│   │   ├── tools/             # 在庫解釈・献立生成・買い物リスト・回避/好み更新・変更
-│   │   └── context.ts         # ユーザー文脈（回避＋好み）をプロンプトへ注入
-│   ├── services/              # ドメインロジック（献立計画・使い切り・日持ち・検証）
-│   ├── db/                    # Drizzle スキーマ・クライアント（postgres.js）
-│   │   ├── schema.ts
-│   │   └── client.ts
-│   └── model/                 # Gemini プロバイダのラッパ（タスク別モデル選択）
-├── components/                # shadcn/ui ベースの UI（チャット・献立カード・買い物リスト・設定）
-└── lib/                       # 共通ユーティリティ
-
-tests/
-├── unit/                      # ドメインロジック・ツールの単体テスト
-└── integration/               # エージェント経由の統合テスト（回避0%・買い物リスト整合など）
-```
+ディレクトリ構成・コロケーション方針・認証方式の詳細は [docs/project-structure.md](../../docs/project-structure.md) を正とする。
 
 **Structure Decision**: TanStack Start のフルスタック単一アプリ（単一 Cloud Run サービス）。UI は `src/routes` と `src/components`、エージェントとツールは `src/server/agent`、ドメインロジックは `src/server/services`、永続化は `src/server/db`。回避・好みの注入は `src/server/agent/context.ts` に集約する。
 
