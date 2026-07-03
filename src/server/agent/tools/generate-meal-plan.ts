@@ -11,6 +11,12 @@ import { z } from "zod"
 import { normalizeInventory } from "../../services/inventory"
 import { validateDays, generateMealPlan } from "../../services/meal-plan"
 import { computeShoppingList } from "../../services/shopping-list"
+import { getConstraints } from "../../services/dietary-constraint"
+import {
+  checkMealPlanViolations,
+  checkShoppingListViolations,
+  formatViolationMessage,
+} from "../../services/avoidance-guard"
 
 const inputSchema = z.object({
   items: z
@@ -33,17 +39,65 @@ export const generateMealPlanTool = tool({
   execute: async ({ items, requestedDays }) => {
     const inventory = normalizeInventory(items)
     const validation = validateDays(requestedDays)
-    const mealPlan = await generateMealPlan({
+    const avoidanceItems = await getConstraints()
+
+    // 1回目の生成（プロンプトで回避を指示）
+    let mealPlan = await generateMealPlan({
       inventory,
       days: validation.days,
+      avoidanceItems,
     })
-    const shoppingList = computeShoppingList(mealPlan, inventory)
+    let shoppingList = computeShoppingList(mealPlan, inventory)
+
+    // コード側ガード: 回避違反を検出したらリトライ（FR-013 / T030）
+    const mealViolations = checkMealPlanViolations(mealPlan, avoidanceItems)
+    const shoppingViolations = checkShoppingListViolations(
+      shoppingList,
+      avoidanceItems,
+    )
+
+    if (mealViolations.length > 0 || shoppingViolations.length > 0) {
+      const allViolations = [...mealViolations, ...shoppingViolations]
+      const violatedNames = [
+        ...new Set(allViolations.map((v) => v.avoidanceName)),
+      ]
+      // 違反した食材名を強調してリトライ（1回のみ）
+      const retryContext = `前回の生成で以下の食材が混入したため、絶対に使わないこと: ${violatedNames.join("、")}`
+      mealPlan = await generateMealPlan({
+        inventory,
+        days: validation.days,
+        avoidanceItems,
+        userContext: retryContext,
+      })
+      shoppingList = computeShoppingList(mealPlan, inventory)
+
+      // リトライ後もまだ違反があれば violationNote で通知（FR-014 / T032）
+      const retryMealViolations = checkMealPlanViolations(
+        mealPlan,
+        avoidanceItems,
+      )
+      const retryShoppingViolations = checkShoppingListViolations(
+        shoppingList,
+        avoidanceItems,
+      )
+      const remaining = [...retryMealViolations, ...retryShoppingViolations]
+
+      return {
+        mealPlan,
+        shoppingList,
+        dayNote: validation.adjusted ? validation.message : null,
+        violationNote:
+          remaining.length > 0
+            ? formatViolationMessage(remaining)
+            : null,
+      }
+    }
 
     return {
       mealPlan,
       shoppingList,
-      // 日数が範囲外で補正した場合のみユーザーへ案内する（FR-006）
       dayNote: validation.adjusted ? validation.message : null,
+      violationNote: null,
     }
   },
 })
