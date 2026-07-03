@@ -7,8 +7,11 @@
  * といった不変条件はコード側で決定的に担保する。
  */
 
+import { generateObject } from "ai"
+import { z } from "zod"
 import { classifyPerishability } from "./inventory"
 import type { InventoryItem, Perishability } from "./inventory"
+import { geminiFlash } from "../model/gemini"
 
 export type Ingredient = {
   name: string
@@ -132,4 +135,90 @@ export function orderByPerishability(
   })
 
   return scored.map(({ recipe }, i) => ({ ...recipe, day: i + 1 }))
+}
+
+/** LLM に生成させる 1 レシピの構造（day は生成後にコード側で振る） */
+const generatedRecipeSchema = z.object({
+  title: z.string().describe("料理名"),
+  ingredients: z
+    .array(
+      z.object({
+        name: z.string().describe("食材名"),
+        amount: z.string().nullable().describe("分量の目安。不明なら null"),
+      }),
+    )
+    .describe("必要な食材と分量"),
+  steps: z.array(z.string()).describe("調理手順の要点"),
+  notes: z
+    .string()
+    .nullable()
+    .describe("日持ち注意など。無ければ null"),
+})
+
+const generatedMealPlanSchema = z.object({
+  meals: z.array(generatedRecipeSchema),
+})
+
+function buildMealPlanPrompt(
+  inventory: InventoryItem[],
+  days: number,
+  userContext?: string,
+): string {
+  const inventoryText =
+    inventory.length > 0
+      ? inventory
+          .map(
+            (i) =>
+              `- ${i.name}${i.quantity ? `（${i.quantity}）` : ""}［日持ち: ${i.perishability}］`,
+          )
+          .join("\n")
+      : "（手持ちの申告なし）"
+
+  const parts = [
+    `以下の手持ち食材を使って、夕食${days}日分の献立を考えてください。`,
+    "",
+    "## 手持ち食材",
+    inventoryText,
+    "",
+    "## 制約",
+    "- 手持ち食材を献立全体で使い切ることを優先し、余り（廃棄）を最小化する。",
+    "- 傷みやすい食材（日持ち high）を優先的に使う。",
+    "- 手持ちで足りない食材は使ってよい（買い物リストは別途コード側で算出する）。",
+    `- 必ず${days}日分、1 日 1 品の夕食を生成する。`,
+  ]
+
+  if (userContext && userContext.trim() !== "") {
+    parts.push("", "## ユーザーの文脈", userContext)
+  }
+
+  return parts.join("\n")
+}
+
+/**
+ * LLM に献立を生成させ、傷みやすさ順に整えて返す（T020 / FR-007・FR-008・FR-010）。
+ * 使い切り最適化・日持ち考慮はプロンプトで指示しつつ、
+ * 傷みやすい食材の早い日への配置はコード側で決定的に強制する。
+ */
+export async function generateMealPlan(params: {
+  inventory: InventoryItem[]
+  days: number
+  userContext?: string
+}): Promise<MealPlan> {
+  const { inventory, days, userContext } = params
+
+  const { object } = await generateObject({
+    model: geminiFlash(),
+    schema: generatedMealPlanSchema,
+    prompt: buildMealPlanPrompt(inventory, days, userContext),
+  })
+
+  const meals: Recipe[] = object.meals.map((meal, index) => ({
+    day: index + 1,
+    ...meal,
+  }))
+
+  return {
+    periodDays: days,
+    meals: orderByPerishability(meals, inventory),
+  }
 }

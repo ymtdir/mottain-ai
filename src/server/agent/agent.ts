@@ -8,7 +8,7 @@ export async function runAgent(messages: ModelMessage[]) {
   const systemPrompt = buildSystemPrompt(ctx)
 
   return streamText({
-    model: geminiFlash,
+    model: geminiFlash(),
     system: systemPrompt,
     messages,
   })
