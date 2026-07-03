@@ -53,6 +53,9 @@ importers:
       shadcn:
         specifier: ^4.12.0
         version: 4.12.0(typescript@6.0.3)
+      srvx:
+        specifier: ^0.11.18
+        version: 0.11.18
       tailwind-merge:
         specifier: ^3.6.0
         version: 3.6.0
