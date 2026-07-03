@@ -38,12 +38,12 @@ export function ConstraintsPanel({ items, onAdd, onRemove }: Props) {
           onChange={(e) => setName(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="食材名を入力"
-          className="border-input bg-background flex-1 rounded-md border px-3 py-1.5 text-sm"
+          className="flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm"
         />
         <select
           value={type}
           onChange={(e) => setType(e.target.value as AvoidanceItem["type"])}
-          className="border-input bg-background rounded-md border px-2 py-1.5 text-sm"
+          className="rounded-md border border-input bg-background px-2 py-1.5 text-sm"
         >
           <option value="dislike">苦手</option>
           <option value="allergy">アレルギー</option>
@@ -51,14 +51,14 @@ export function ConstraintsPanel({ items, onAdd, onRemove }: Props) {
         <button
           onClick={handleAdd}
           disabled={!name.trim()}
-          className="bg-primary text-primary-foreground rounded-md px-3 py-1.5 text-sm disabled:opacity-40"
+          className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground disabled:opacity-40"
         >
           追加
         </button>
       </div>
 
       {items.length === 0 ? (
-        <p className="text-muted-foreground text-xs">
+        <p className="text-xs text-muted-foreground">
           回避食材は登録されていません。
         </p>
       ) : (
@@ -70,13 +70,13 @@ export function ConstraintsPanel({ items, onAdd, onRemove }: Props) {
             >
               <span>
                 {item.name}
-                <span className="text-muted-foreground ml-1.5 text-xs">
+                <span className="ml-1.5 text-xs text-muted-foreground">
                   {TYPE_LABELS[item.type]}
                 </span>
               </span>
               <button
                 onClick={() => onRemove(item.name)}
-                className="text-muted-foreground hover:text-destructive text-xs"
+                className="text-xs text-muted-foreground hover:text-destructive"
               >
                 削除
               </button>

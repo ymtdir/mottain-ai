@@ -16,55 +16,66 @@ import type { AvoidanceItem } from "../services/avoidance-guard"
  */
 const hasCredentials = Boolean(process.env.GOOGLE_CLOUD_PROJECT)
 
-describe.skipIf(!hasCredentials)("US2: 回避食材が献立・買い物リストに混入しない（実 LLM）", () => {
-  it("回避食材が献立に 0% 混入しない（SC-001）", async () => {
-    const avoidanceItems: AvoidanceItem[] = [
-      { name: "えび", aliases: ["海老", "エビ", "蝦"], type: "allergy" },
-    ]
+describe.skipIf(!hasCredentials)(
+  "US2: 回避食材が献立・買い物リストに混入しない（実 LLM）",
+  () => {
+    it("回避食材が献立に 0% 混入しない（SC-001）", async () => {
+      const avoidanceItems: AvoidanceItem[] = [
+        { name: "えび", aliases: ["海老", "エビ", "蝦"], type: "allergy" },
+      ]
 
-    const inventory = normalizeInventory([
-      { name: "じゃがいも", quantity: "3個" },
-      { name: "人参", quantity: "2本" },
-      { name: "玉ねぎ", quantity: "2個" },
-    ])
-    const { days } = validateDays(3)
+      const inventory = normalizeInventory([
+        { name: "じゃがいも", quantity: "3個" },
+        { name: "人参", quantity: "2本" },
+        { name: "玉ねぎ", quantity: "2個" },
+      ])
+      const { days } = validateDays(3)
 
-    const mealPlan = await generateMealPlan({ inventory, days, avoidanceItems })
-    const shoppingList = computeShoppingList(mealPlan, inventory)
+      const mealPlan = await generateMealPlan({
+        inventory,
+        days,
+        avoidanceItems,
+      })
+      const shoppingList = computeShoppingList(mealPlan, inventory)
 
-    const mealViolations = checkMealPlanViolations(mealPlan, avoidanceItems)
-    const shoppingViolations = checkShoppingListViolations(
-      shoppingList,
-      avoidanceItems,
-    )
+      const mealViolations = checkMealPlanViolations(mealPlan, avoidanceItems)
+      const shoppingViolations = checkShoppingListViolations(
+        shoppingList,
+        avoidanceItems
+      )
 
-    expect(mealViolations).toHaveLength(0)
-    expect(shoppingViolations).toHaveLength(0)
-  }, 60_000)
+      expect(mealViolations).toHaveLength(0)
+      expect(shoppingViolations).toHaveLength(0)
+    }, 60_000)
 
-  it("複数の回避食材がすべて献立に含まれない", async () => {
-    const avoidanceItems: AvoidanceItem[] = [
-      { name: "牛肉", aliases: ["ビーフ"], type: "dislike" },
-      { name: "ピーマン", aliases: [], type: "dislike" },
-    ]
+    it("複数の回避食材がすべて献立に含まれない", async () => {
+      const avoidanceItems: AvoidanceItem[] = [
+        { name: "牛肉", aliases: ["ビーフ"], type: "dislike" },
+        { name: "ピーマン", aliases: [], type: "dislike" },
+      ]
 
-    const inventory = normalizeInventory([
-      { name: "豚肉", quantity: "300g" },
-      { name: "キャベツ", quantity: "1/2個" },
-      { name: "にんにく", quantity: "2片" },
-    ])
-    const { days } = validateDays(2)
+      const inventory = normalizeInventory([
+        { name: "豚肉", quantity: "300g" },
+        { name: "キャベツ", quantity: "1/2個" },
+        { name: "にんにく", quantity: "2片" },
+      ])
+      const { days } = validateDays(2)
 
-    const mealPlan = await generateMealPlan({ inventory, days, avoidanceItems })
-    const shoppingList = computeShoppingList(mealPlan, inventory)
+      const mealPlan = await generateMealPlan({
+        inventory,
+        days,
+        avoidanceItems,
+      })
+      const shoppingList = computeShoppingList(mealPlan, inventory)
 
-    const mealViolations = checkMealPlanViolations(mealPlan, avoidanceItems)
-    const shoppingViolations = checkShoppingListViolations(
-      shoppingList,
-      avoidanceItems,
-    )
+      const mealViolations = checkMealPlanViolations(mealPlan, avoidanceItems)
+      const shoppingViolations = checkShoppingListViolations(
+        shoppingList,
+        avoidanceItems
+      )
 
-    expect(mealViolations).toHaveLength(0)
-    expect(shoppingViolations).toHaveLength(0)
-  }, 60_000)
-})
+      expect(mealViolations).toHaveLength(0)
+      expect(shoppingViolations).toHaveLength(0)
+    }, 60_000)
+  }
+)

@@ -13,9 +13,7 @@ export async function getConstraints(): Promise<AvoidanceItem[]> {
   return (row?.items ?? []) as AvoidanceItem[]
 }
 
-export async function upsertConstraints(
-  items: AvoidanceItem[],
-): Promise<void> {
+export async function upsertConstraints(items: AvoidanceItem[]): Promise<void> {
   const existing = await db.query.dietaryConstraints.findFirst({
     where: eq(dietaryConstraints.userId, FIXED_USER_ID),
   })

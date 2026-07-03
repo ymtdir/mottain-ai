@@ -20,28 +20,25 @@ function normalize(text: string): string {
       .toLowerCase()
       .trim()
       // カタカナ → ひらがな
-      .replace(/[ァ-ヶ]/g, (ch) =>
-        String.fromCharCode(ch.charCodeAt(0) - 0x60),
-      )
+      .replace(/[ァ-ヶ]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0x60))
   )
 }
 
 function matches(
   ingredientName: string,
   avoidanceName: string,
-  aliases: string[],
+  aliases: string[]
 ): boolean {
   const normIngredient = normalize(ingredientName)
   const allNames = [avoidanceName, ...aliases].map(normalize)
   return allNames.some(
-    (name) =>
-      normIngredient.includes(name) || name.includes(normIngredient),
+    (name) => normIngredient.includes(name) || name.includes(normIngredient)
   )
 }
 
 export function checkMealPlanViolations(
   mealPlan: MealPlan,
-  avoidanceItems: AvoidanceItem[],
+  avoidanceItems: AvoidanceItem[]
 ): AvoidanceViolation[] {
   if (avoidanceItems.length === 0) return []
 
@@ -67,7 +64,7 @@ export function checkMealPlanViolations(
 
 export function checkShoppingListViolations(
   shoppingList: ShoppingList,
-  avoidanceItems: AvoidanceItem[],
+  avoidanceItems: AvoidanceItem[]
 ): AvoidanceViolation[] {
   if (avoidanceItems.length === 0) return []
 
@@ -90,7 +87,7 @@ export function checkShoppingListViolations(
 }
 
 export function formatViolationMessage(
-  violations: AvoidanceViolation[],
+  violations: AvoidanceViolation[]
 ): string {
   const names = [...new Set(violations.map((v) => v.avoidanceName))]
   return `回避対象（${names.join("、")}）が献立に含まれていたため、再生成が必要です。`

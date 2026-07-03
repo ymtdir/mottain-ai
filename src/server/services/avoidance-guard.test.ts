@@ -60,9 +60,7 @@ describe("checkMealPlanViolations", () => {
   })
 
   it("カタカナ→ひらがな正規化で一致する（エビ→えび）", () => {
-    const avoidance = [
-      { name: "エビ", aliases: [], type: "allergy" as const },
-    ]
+    const avoidance = [{ name: "エビ", aliases: [], type: "allergy" as const }]
     const violations = checkMealPlanViolations(sampleMealPlan, avoidance)
     expect(violations).toHaveLength(1)
     expect(violations[0].ingredientName).toBe("えび")
@@ -98,7 +96,7 @@ describe("checkShoppingListViolations", () => {
     ]
     const violations = checkShoppingListViolations(
       sampleShoppingList,
-      avoidance,
+      avoidance
     )
     expect(violations).toHaveLength(1)
     expect(violations[0].foundIn).toBe("shopping")
@@ -111,18 +109,16 @@ describe("checkShoppingListViolations", () => {
     ]
     const violations = checkShoppingListViolations(
       sampleShoppingList,
-      avoidance,
+      avoidance
     )
     expect(violations).toHaveLength(0)
   })
 
   it("部分一致（えびフライ用えび → えびで一致）", () => {
-    const avoidance = [
-      { name: "えび", aliases: [], type: "allergy" as const },
-    ]
+    const avoidance = [{ name: "えび", aliases: [], type: "allergy" as const }]
     const violations = checkShoppingListViolations(
       sampleShoppingList,
-      avoidance,
+      avoidance
     )
     expect(violations).toHaveLength(1)
   })

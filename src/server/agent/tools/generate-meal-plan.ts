@@ -53,7 +53,7 @@ export const generateMealPlanTool = tool({
     const mealViolations = checkMealPlanViolations(mealPlan, avoidanceItems)
     const shoppingViolations = checkShoppingListViolations(
       shoppingList,
-      avoidanceItems,
+      avoidanceItems
     )
 
     if (mealViolations.length > 0 || shoppingViolations.length > 0) {
@@ -74,11 +74,11 @@ export const generateMealPlanTool = tool({
       // リトライ後もまだ違反があれば violationNote で通知（FR-014 / T032）
       const retryMealViolations = checkMealPlanViolations(
         mealPlan,
-        avoidanceItems,
+        avoidanceItems
       )
       const retryShoppingViolations = checkShoppingListViolations(
         shoppingList,
-        avoidanceItems,
+        avoidanceItems
       )
       const remaining = [...retryMealViolations, ...retryShoppingViolations]
 
@@ -87,9 +87,7 @@ export const generateMealPlanTool = tool({
         shoppingList,
         dayNote: validation.adjusted ? validation.message : null,
         violationNote:
-          remaining.length > 0
-            ? formatViolationMessage(remaining)
-            : null,
+          remaining.length > 0 ? formatViolationMessage(remaining) : null,
       }
     }
 
