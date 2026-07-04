@@ -143,7 +143,9 @@ export function MessageList({ messages, status }: Props) {
                       </p>
                     )}
                     <MealPlanCard mealPlan={output.updatedMealPlan} />
-                    <ShoppingListCard shoppingList={output.updatedShoppingList} />
+                    <ShoppingListCard
+                      shoppingList={output.updatedShoppingList}
+                    />
                   </div>
                 )
               }

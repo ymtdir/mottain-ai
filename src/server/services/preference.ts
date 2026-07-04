@@ -1,5 +1,5 @@
 import { db } from "../db/client"
-import { preferenceProfiles } from "../db/schema"
+import { preferenceProfiles, users } from "../db/schema"
 import { eq } from "drizzle-orm"
 import { z } from "zod"
 import { FIXED_USER_ID } from "../db/constants"
@@ -112,7 +112,12 @@ export async function getPreference(): Promise<PreferenceMemory> {
   return parsed.success ? parsed.data : { ...EMPTY_PREFERENCE }
 }
 
+async function ensureUser(): Promise<void> {
+  await db.insert(users).values({ id: FIXED_USER_ID }).onConflictDoNothing()
+}
+
 export async function upsertPreference(mem: PreferenceMemory): Promise<void> {
+  await ensureUser()
   await db
     .insert(preferenceProfiles)
     .values({ userId: FIXED_USER_ID, memory: mem })
