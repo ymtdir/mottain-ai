@@ -24,20 +24,30 @@ export function MealPlanCard({ mealPlan }: Props) {
             </div>
 
             {meal.ingredients.length > 0 && (
-              <p className="mt-2 text-xs text-muted-foreground">
-                材料:{" "}
-                {meal.ingredients
-                  .map((i) => (i.amount ? `${i.name}（${i.amount}）` : i.name))
-                  .join("、")}
-              </p>
+              <div className="mt-2 text-xs">
+                <p className="font-medium text-foreground">【材料】</p>
+                <ul className="mt-1 space-y-0.5 text-muted-foreground">
+                  {meal.ingredients.map((i) => (
+                    <li key={i.name}>
+                      ・{i.name}
+                      {i.amount && <span className="ml-1">{i.amount}</span>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
 
             {meal.steps.length > 0 && (
-              <ol className="mt-2 list-inside list-decimal space-y-0.5 text-xs">
-                {meal.steps.map((step, i) => (
-                  <li key={i}>{step}</li>
-                ))}
-              </ol>
+              <div className="mt-2 text-xs">
+                <p className="font-medium text-foreground">【作り方】</p>
+                <ol className="mt-1 space-y-0.5 text-muted-foreground">
+                  {meal.steps.map((step, i) => (
+                    <li key={i}>
+                      {i + 1}. {step}
+                    </li>
+                  ))}
+                </ol>
+              </div>
             )}
 
             {meal.notes && (
