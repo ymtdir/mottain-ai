@@ -28,6 +28,10 @@ function ChatPage() {
   const { messages, setMessages, sendMessage, status } = useChat({
     onFinish: () => {
       pendingSave.current = true
+      fetch("/api/preferences")
+        .then((r) => r.json())
+        .then(setPreferences)
+        .catch(() => {})
     },
   })
   const isLoading = status === "submitted" || status === "streaming"
