@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useState, useRef } from "react"
+import { X } from "lucide-react"
 import type { AvoidanceItem } from "@/server/services/avoidance-guard"
 
 type Props = {
@@ -15,16 +16,13 @@ const TYPE_LABELS: Record<AvoidanceItem["type"], string> = {
 export function ConstraintsPanel({ items, onAdd, onRemove }: Props) {
   const [name, setName] = useState("")
   const [type, setType] = useState<AvoidanceItem["type"]>("dislike")
+  const isComposing = useRef(false)
 
   function handleAdd() {
     const trimmed = name.trim()
     if (!trimmed) return
     onAdd({ name: trimmed, aliases: [], type })
     setName("")
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter") handleAdd()
   }
 
   return (
@@ -36,9 +34,20 @@ export function ConstraintsPanel({ items, onAdd, onRemove }: Props) {
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          onKeyDown={handleKeyDown}
+          onCompositionStart={() => {
+            isComposing.current = true
+          }}
+          onCompositionEnd={() => {
+            isComposing.current = false
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !isComposing.current) {
+              e.preventDefault()
+              handleAdd()
+            }
+          }}
           placeholder="食材名を入力"
-          className="flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm"
+          className="flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
         />
         <select
           value={type}
@@ -76,9 +85,10 @@ export function ConstraintsPanel({ items, onAdd, onRemove }: Props) {
               </span>
               <button
                 onClick={() => onRemove(item.name)}
-                className="text-xs text-muted-foreground hover:text-destructive"
+                className="text-muted-foreground hover:text-destructive"
+                aria-label={`${item.name}を削除`}
               >
-                削除
+                <X size={14} />
               </button>
             </li>
           ))}
