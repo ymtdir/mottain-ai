@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react"
 import { isTextUIPart, isToolUIPart, getToolName } from "ai"
 import type { UIMessage } from "ai"
 import { MealPlanCard } from "@/components/meal-plan/MealPlanCard"
@@ -72,6 +73,12 @@ function ThinkingBubble({ label }: { label: string }) {
 }
 
 export function MessageList({ messages, status }: Props) {
+  const bottomRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages, status])
+
   if (messages.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
@@ -82,7 +89,6 @@ export function MessageList({ messages, status }: Props) {
 
   const isActive = status === "submitted" || status === "streaming"
   const lastMessage = messages[messages.length - 1]
-  // 最後のメッセージがユーザーで応答待ちのとき、考え中バブルを出す
   const showSubmittedBubble = isActive && lastMessage.role === "user"
 
   return (
@@ -170,6 +176,7 @@ export function MessageList({ messages, status }: Props) {
 
       {/* 最初のトークンが来る前（submitted 状態）に考え中バブルを表示する */}
       {showSubmittedBubble && <ThinkingBubble label="考え中..." />}
+      <div ref={bottomRef} />
     </div>
   )
 }
