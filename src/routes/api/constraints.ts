@@ -1,10 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { z } from "zod"
 import {
   getConstraints,
   addConstraint,
   removeConstraint,
 } from "../../server/services/dietary-constraint"
-import type { AvoidanceItem } from "../../server/services/dietary-constraint"
+
+const avoidanceItemSchema = z.object({
+  name: z.string().min(1),
+  aliases: z.array(z.string()),
+})
+
+const postBodySchema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("add"), item: avoidanceItemSchema }),
+  z.object({ action: z.literal("remove"), name: z.string().min(1) }),
+])
 
 export const Route = createFileRoute("/api/constraints")({
   server: {
@@ -14,15 +24,14 @@ export const Route = createFileRoute("/api/constraints")({
         return Response.json(items)
       },
       POST: async ({ request }) => {
-        const { action, item, name } = (await request.json()) as {
-          action: "add" | "remove"
-          item?: AvoidanceItem
-          name?: string
-        }
-        if (action === "add" && item) {
-          await addConstraint(item)
-        } else if (action === "remove" && name) {
-          await removeConstraint(name)
+        const parsed = postBodySchema.safeParse(await request.json())
+        if (!parsed.success)
+          return Response.json({ error: "Invalid request" }, { status: 400 })
+        const body = parsed.data
+        if (body.action === "add") {
+          await addConstraint(body.item)
+        } else {
+          await removeConstraint(body.name)
         }
         return Response.json({ ok: true })
       },

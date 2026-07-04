@@ -1,14 +1,11 @@
 import { db } from "../db/client"
-import { dietaryConstraints, users } from "../db/schema"
+import { dietaryConstraints } from "../db/schema"
 import { eq } from "drizzle-orm"
 import { FIXED_USER_ID } from "../db/constants"
+import { ensureUser } from "../db/ensure-user"
 import type { AvoidanceItem } from "./avoidance-guard"
 
 export type { AvoidanceItem }
-
-async function ensureUser(): Promise<void> {
-  await db.insert(users).values({ id: FIXED_USER_ID }).onConflictDoNothing()
-}
 
 export async function getConstraints(): Promise<AvoidanceItem[]> {
   const row = await db.query.dietaryConstraints.findFirst({

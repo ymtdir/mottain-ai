@@ -215,10 +215,12 @@ export function SessionSidebar({
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
-                          onDelete(s.id)
+                          if (window.confirm(`「${s.name}」を削除しますか？`)) {
+                            onDelete(s.id)
+                          }
                         }}
                         className="rounded p-0.5 text-muted-foreground hover:bg-sidebar-accent hover:text-destructive"
-                        aria-label="削除"
+                        aria-label={`${s.name}を削除`}
                       >
                         <Trash2 size={14} />
                       </button>

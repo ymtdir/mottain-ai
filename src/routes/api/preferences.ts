@@ -1,8 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { z } from "zod"
 import {
   getPreference,
   upsertPreference,
 } from "../../server/services/preference"
+
+const postBodySchema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("add-tendency"), note: z.string().min(1) }),
+  z.object({
+    action: z.literal("remove-tendency"),
+    attribute: z.string().min(1),
+  }),
+  z.object({
+    action: z.literal("remove-recipe"),
+    recipeName: z.string().min(1),
+  }),
+])
 
 export const Route = createFileRoute("/api/preferences")({
   server: {
@@ -12,15 +25,13 @@ export const Route = createFileRoute("/api/preferences")({
         return Response.json(pref)
       },
       POST: async ({ request }) => {
-        const body = (await request.json()) as {
-          action: "add-tendency" | "remove-tendency" | "remove-recipe"
-          note?: string
-          attribute?: string
-          recipeName?: string
-        }
+        const parsed = postBodySchema.safeParse(await request.json())
+        if (!parsed.success)
+          return Response.json({ error: "Invalid request" }, { status: 400 })
+        const body = parsed.data
         const existing = await getPreference()
 
-        if (body.action === "add-tendency" && body.note) {
+        if (body.action === "add-tendency") {
           const note = body.note.trim()
           const newTendency = {
             attribute: note,
@@ -32,14 +43,14 @@ export const Route = createFileRoute("/api/preferences")({
             newTendency,
           ]
           await upsertPreference({ ...existing, globalTendencies: tendencies })
-        } else if (body.action === "remove-tendency" && body.attribute) {
+        } else if (body.action === "remove-tendency") {
           await upsertPreference({
             ...existing,
             globalTendencies: existing.globalTendencies.filter(
               (t) => t.attribute !== body.attribute
             ),
           })
-        } else if (body.action === "remove-recipe" && body.recipeName) {
+        } else if (body.action === "remove-recipe") {
           await upsertPreference({
             ...existing,
             recipeAdjustments: existing.recipeAdjustments.filter(

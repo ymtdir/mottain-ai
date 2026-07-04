@@ -80,7 +80,7 @@ export function PreferencesView({
                     <button
                       onClick={() => onRemoveTendency(t.attribute)}
                       className="mt-0.5 shrink-0 text-muted-foreground hover:text-destructive"
-                      aria-label="削除"
+                      aria-label={`${t.adjustmentNote}を削除`}
                     >
                       <X size={12} />
                     </button>
@@ -109,7 +109,7 @@ export function PreferencesView({
                     <button
                       onClick={() => onRemoveRecipe(r.recipeName)}
                       className="mt-0.5 shrink-0 text-muted-foreground hover:text-destructive"
-                      aria-label="削除"
+                      aria-label={`${r.recipeName}を削除`}
                     >
                       <X size={12} />
                     </button>

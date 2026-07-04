@@ -5,10 +5,11 @@ import { ShoppingListCard } from "@/components/meal-plan/ShoppingListCard"
 import type { MealPlan } from "@/server/services/meal-plan"
 import type { ShoppingList } from "@/server/services/shopping-list"
 
+type ChatStatus = "submitted" | "streaming" | "ready" | "error"
+
 type Props = {
   messages: UIMessage[]
-  /** useChat の status。"submitted" | "streaming" | "ready" | "error" */
-  status: string
+  status: ChatStatus
 }
 
 /** generateMealPlan ツールの出力構造 */

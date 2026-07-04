@@ -57,12 +57,15 @@ function ChatPage() {
 
   useEffect(() => {
     if (pendingSave.current && !isLoading && activeId && messages.length > 0) {
-      pendingSave.current = false
       fetch(`/api/sessions/${activeId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages }),
-      }).catch(() => {})
+      })
+        .then(() => {
+          pendingSave.current = false
+        })
+        .catch(() => {})
     }
   }, [isLoading, activeId, messages])
 
@@ -97,17 +100,15 @@ function ChatPage() {
 
   async function handleDelete(id: string) {
     await fetch(`/api/sessions/${id}`, { method: "DELETE" })
-    setSessions((prev) => {
-      const next = prev.filter((s) => s.id !== id)
-      if (activeId === id) {
-        if (next.length > 0) loadSession(next[0].id)
-        else {
-          setActiveId(null)
-          setMessages([])
-        }
+    setSessions((prev) => prev.filter((s) => s.id !== id))
+    if (activeId === id) {
+      const remaining = sessions.filter((s) => s.id !== id)
+      if (remaining.length > 0) loadSession(remaining[0].id)
+      else {
+        setActiveId(null)
+        setMessages([])
       }
-      return next
-    })
+    }
   }
 
   const handleAddConstraint = useCallback(async (item: AvoidanceItem) => {
