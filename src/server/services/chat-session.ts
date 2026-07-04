@@ -83,7 +83,7 @@ export async function saveMessages(
         id: msg.id,
         sessionId,
         role: msg.role,
-        parts: msg.parts as object,
+        parts: msg.parts,
       })
       .onConflictDoNothing()
   }
