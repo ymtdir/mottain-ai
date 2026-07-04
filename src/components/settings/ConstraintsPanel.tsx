@@ -51,9 +51,7 @@ export function ConstraintsPanel({ items, onAdd, onRemove }: Props) {
       </div>
 
       {items.length === 0 ? (
-        <p className="text-xs text-muted-foreground">
-          回避リストは空です。
-        </p>
+        <p className="text-xs text-muted-foreground">回避リストは空です。</p>
       ) : (
         <ul className="flex flex-col gap-1">
           {items.map((item) => (

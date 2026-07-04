@@ -62,61 +62,63 @@ export function PreferencesView({
           好みはまだ登録されていません。
         </p>
       ) : (
-    <div className="flex flex-col gap-3">
-      {globalTendencies.length > 0 && (
-        <div className="flex flex-col gap-1">
-          <p className="text-xs font-medium text-muted-foreground">
-            全体的な傾向
-          </p>
-          <ul className="flex flex-col gap-1">
-            {globalTendencies.map((t) => (
-              <li
-                key={t.attribute}
-                className="flex items-start justify-between gap-1 rounded-md border px-2 py-1.5 text-xs"
-              >
-                <span className="min-w-0 leading-snug">{t.adjustmentNote}</span>
-                <button
-                  onClick={() => onRemoveTendency(t.attribute)}
-                  className="mt-0.5 shrink-0 text-muted-foreground hover:text-destructive"
-                  aria-label="削除"
-                >
-                  <X size={12} />
-                </button>
-              </li>
-            ))}
-          </ul>
+        <div className="flex flex-col gap-3">
+          {globalTendencies.length > 0 && (
+            <div className="flex flex-col gap-1">
+              <p className="text-xs font-medium text-muted-foreground">
+                全体的な傾向
+              </p>
+              <ul className="flex flex-col gap-1">
+                {globalTendencies.map((t) => (
+                  <li
+                    key={t.attribute}
+                    className="flex items-start justify-between gap-1 rounded-md border px-2 py-1.5 text-xs"
+                  >
+                    <span className="min-w-0 leading-snug">
+                      {t.adjustmentNote}
+                    </span>
+                    <button
+                      onClick={() => onRemoveTendency(t.attribute)}
+                      className="mt-0.5 shrink-0 text-muted-foreground hover:text-destructive"
+                      aria-label="削除"
+                    >
+                      <X size={12} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {recipeAdjustments.length > 0 && (
+            <div className="flex flex-col gap-1">
+              <p className="text-xs font-medium text-muted-foreground">
+                レシピ固有
+              </p>
+              <ul className="flex flex-col gap-1">
+                {recipeAdjustments.map((r) => (
+                  <li
+                    key={r.recipeName}
+                    className="flex items-start justify-between gap-1 rounded-md border px-2 py-1.5 text-xs"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-medium">{r.recipeName}</p>
+                      <p className="text-muted-foreground">
+                        {r.adjustments.join("、")}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => onRemoveRecipe(r.recipeName)}
+                      className="mt-0.5 shrink-0 text-muted-foreground hover:text-destructive"
+                      aria-label="削除"
+                    >
+                      <X size={12} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
-      )}
-      {recipeAdjustments.length > 0 && (
-        <div className="flex flex-col gap-1">
-          <p className="text-xs font-medium text-muted-foreground">
-            レシピ固有
-          </p>
-          <ul className="flex flex-col gap-1">
-            {recipeAdjustments.map((r) => (
-              <li
-                key={r.recipeName}
-                className="flex items-start justify-between gap-1 rounded-md border px-2 py-1.5 text-xs"
-              >
-                <div className="min-w-0">
-                  <p className="font-medium">{r.recipeName}</p>
-                  <p className="text-muted-foreground">
-                    {r.adjustments.join("、")}
-                  </p>
-                </div>
-                <button
-                  onClick={() => onRemoveRecipe(r.recipeName)}
-                  className="mt-0.5 shrink-0 text-muted-foreground hover:text-destructive"
-                  aria-label="削除"
-                >
-                  <X size={12} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
       )}
     </div>
   )

@@ -141,7 +141,11 @@ function ChatPage() {
       ...prev,
       globalTendencies: [
         ...prev.globalTendencies.filter((t) => t.attribute !== note),
-        { attribute: note, adjustmentNote: note, updatedAt: new Date().toISOString() },
+        {
+          attribute: note,
+          adjustmentNote: note,
+          updatedAt: new Date().toISOString(),
+        },
       ],
     }))
   }, [])
