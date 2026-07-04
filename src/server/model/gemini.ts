@@ -19,12 +19,6 @@ function getVertex(): GoogleVertexProvider {
   return vertexProvider
 }
 
-/** 汎用チャット・エージェント推論用 */
 export function geminiFlash(): LanguageModel {
-  return getVertex()("gemini-2.0-flash-001")
-}
-
-/** 構造化出力・ツール呼び出し用（より高精度が必要な場合） */
-export function geminiPro(): LanguageModel {
-  return getVertex()("gemini-2.5-pro-preview-06-05")
+  return getVertex()("gemini-3.5-flash")
 }

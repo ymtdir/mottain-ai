@@ -12,6 +12,7 @@ export const dietaryConstraints = pgTable("dietary_constraints", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id")
     .notNull()
+    .unique()
     .references(() => users.id),
   // [{ name: string, aliases: string[], type: "allergy" | "dislike" }]
   items: jsonb("items").notNull().default([]),
@@ -25,6 +26,7 @@ export const preferenceProfiles = pgTable("preference_profiles", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id")
     .notNull()
+    .unique()
     .references(() => users.id),
   // { globalTendencies: {...}, recipeAdjustments: [{recipeName, adjustments}] }
   memory: jsonb("memory").notNull().default({}),

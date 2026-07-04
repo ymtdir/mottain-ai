@@ -1,9 +1,13 @@
 import { db } from "../db/client"
-import { dietaryConstraints, preferenceProfiles } from "../db/schema"
+import { dietaryConstraints } from "../db/schema"
 import { eq } from "drizzle-orm"
-
-// MVP 固定ユーザー ID（認証なし）
-export const FIXED_USER_ID = "00000000-0000-0000-0000-000000000001"
+import {
+  buildPreferenceContext,
+  isEmptyPreference,
+  getPreference,
+} from "../services/preference"
+import type { PreferenceMemory } from "../services/preference"
+import { FIXED_USER_ID } from "../db/constants"
 
 export type UserContext = {
   avoidanceItems: Array<{
@@ -11,22 +15,20 @@ export type UserContext = {
     aliases: string[]
     type: "allergy" | "dislike"
   }>
-  preferenceMemory: Record<string, unknown>
+  preferenceMemory: PreferenceMemory
 }
 
 export async function loadUserContext(): Promise<UserContext> {
-  const [constraint, preference] = await Promise.all([
+  const [constraint, preferenceMemory] = await Promise.all([
     db.query.dietaryConstraints.findFirst({
       where: eq(dietaryConstraints.userId, FIXED_USER_ID),
     }),
-    db.query.preferenceProfiles.findFirst({
-      where: eq(preferenceProfiles.userId, FIXED_USER_ID),
-    }),
+    getPreference(),
   ])
 
   return {
     avoidanceItems: (constraint?.items ?? []) as UserContext["avoidanceItems"],
-    preferenceMemory: (preference?.memory ?? {}) as Record<string, unknown>,
+    preferenceMemory,
   }
 }
 
@@ -35,6 +37,7 @@ export function buildSystemPrompt(ctx: UserContext): string {
     "あなたは献立エージェントです。ユーザーが伝えた在庫を使い切ることを優先し、N日分の夕食献立と不足食材の買い物リストを提案します。",
   ]
 
+  // 回避制約（ハード）— 好みより常に優先する（FR-024）
   if (ctx.avoidanceItems.length > 0) {
     const list = ctx.avoidanceItems
       .map(
@@ -46,9 +49,11 @@ export function buildSystemPrompt(ctx: UserContext): string {
     )
   }
 
-  if (Object.keys(ctx.preferenceMemory).length > 0) {
+  // 好みメモリ（ソフト）— 学習不足時は空でフォールバック（FR-022）
+  if (!isEmptyPreference(ctx.preferenceMemory)) {
+    const preferenceText = buildPreferenceContext(ctx.preferenceMemory)
     parts.push(
-      `\n## ユーザーの好み（ソフト・可能な範囲で反映）\n${JSON.stringify(ctx.preferenceMemory, null, 2)}`
+      `\n## ユーザーの好み（ソフト・可能な範囲で反映）\n${preferenceText}`
     )
   }
 
