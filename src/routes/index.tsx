@@ -23,6 +23,7 @@ function ChatPage() {
   })
   const [input, setInput] = useState("")
   const pendingSave = useRef(false)
+  const loadingSessionId = useRef<string | null>(null)
 
   const { messages, setMessages, sendMessage, status } = useChat({
     onFinish: () => {
@@ -71,9 +72,12 @@ function ChatPage() {
 
   function loadSession(id: string) {
     setActiveId(id)
+    loadingSessionId.current = id
     fetch(`/api/sessions/${id}`)
       .then((r) => r.json())
-      .then((msgs: UIMessage[]) => setMessages(msgs))
+      .then((msgs: UIMessage[]) => {
+        if (loadingSessionId.current === id) setMessages(msgs)
+      })
       .catch(() => {})
   }
 

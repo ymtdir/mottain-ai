@@ -150,6 +150,17 @@ export function MessageList({ messages, status }: Props) {
                   </div>
                 )
               }
+
+              if (part.state === "output-error") {
+                return (
+                  <p
+                    key={index}
+                    className="rounded bg-red-50 px-2 py-1 text-xs text-red-700"
+                  >
+                    ツールの実行中にエラーが発生しました。
+                  </p>
+                )
+              }
             }
 
             return null
