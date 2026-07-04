@@ -1,7 +1,7 @@
 import { db } from "../db/client"
 import { preferenceProfiles } from "../db/schema"
 import { eq } from "drizzle-orm"
-import { FIXED_USER_ID } from "../agent/context"
+import { FIXED_USER_ID } from "../db/constants"
 
 /** 全体的な味の傾向（「辛さを抑える」「塩分を控える」など） */
 export type GlobalTendency = {

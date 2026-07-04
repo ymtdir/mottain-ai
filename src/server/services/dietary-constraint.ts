@@ -1,7 +1,7 @@
 import { db } from "../db/client"
 import { dietaryConstraints } from "../db/schema"
 import { eq } from "drizzle-orm"
-import { FIXED_USER_ID } from "../agent/context"
+import { FIXED_USER_ID } from "../db/constants"
 import type { AvoidanceItem } from "./avoidance-guard"
 
 export type { AvoidanceItem }

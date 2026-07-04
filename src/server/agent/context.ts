@@ -6,9 +6,7 @@ import {
   isEmptyPreference,
 } from "../services/preference"
 import type { PreferenceMemory } from "../services/preference"
-
-// MVP 固定ユーザー ID（認証なし）
-export const FIXED_USER_ID = "00000000-0000-0000-0000-000000000001"
+import { FIXED_USER_ID } from "../db/constants"
 
 export type UserContext = {
   avoidanceItems: Array<{
