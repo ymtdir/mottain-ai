@@ -1,9 +1,10 @@
 import { db } from "../db/client"
-import { dietaryConstraints, preferenceProfiles } from "../db/schema"
+import { dietaryConstraints } from "../db/schema"
 import { eq } from "drizzle-orm"
 import {
   buildPreferenceContext,
   isEmptyPreference,
+  getPreference,
 } from "../services/preference"
 import type { PreferenceMemory } from "../services/preference"
 import { FIXED_USER_ID } from "../db/constants"
@@ -18,23 +19,16 @@ export type UserContext = {
 }
 
 export async function loadUserContext(): Promise<UserContext> {
-  const [constraint, preference] = await Promise.all([
+  const [constraint, preferenceMemory] = await Promise.all([
     db.query.dietaryConstraints.findFirst({
       where: eq(dietaryConstraints.userId, FIXED_USER_ID),
     }),
-    db.query.preferenceProfiles.findFirst({
-      where: eq(preferenceProfiles.userId, FIXED_USER_ID),
-    }),
+    getPreference(),
   ])
-
-  const raw = (preference?.memory ?? {}) as Partial<PreferenceMemory>
 
   return {
     avoidanceItems: (constraint?.items ?? []) as UserContext["avoidanceItems"],
-    preferenceMemory: {
-      globalTendencies: raw.globalTendencies ?? [],
-      recipeAdjustments: raw.recipeAdjustments ?? [],
-    },
+    preferenceMemory,
   }
 }
 
