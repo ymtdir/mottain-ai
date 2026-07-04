@@ -1,6 +1,7 @@
 import { db } from "../db/client"
 import { preferenceProfiles } from "../db/schema"
 import { eq } from "drizzle-orm"
+import { z } from "zod"
 import { FIXED_USER_ID } from "../db/constants"
 
 /** 全体的な味の傾向（「辛さを抑える」「塩分を控える」など） */
@@ -26,6 +27,27 @@ export const EMPTY_PREFERENCE: PreferenceMemory = {
   globalTendencies: [],
   recipeAdjustments: [],
 }
+
+const preferenceMemorySchema = z.object({
+  globalTendencies: z
+    .array(
+      z.object({
+        attribute: z.string(),
+        adjustmentNote: z.string(),
+        updatedAt: z.string(),
+      })
+    )
+    .default([]),
+  recipeAdjustments: z
+    .array(
+      z.object({
+        recipeName: z.string(),
+        adjustments: z.array(z.string()),
+        updatedAt: z.string(),
+      })
+    )
+    .default([]),
+})
 
 /**
  * 好みメモリをマージする（FR-021/023）。
@@ -67,11 +89,8 @@ export async function getPreference(): Promise<PreferenceMemory> {
     where: eq(preferenceProfiles.userId, FIXED_USER_ID),
   })
   if (!row) return { ...EMPTY_PREFERENCE }
-  const raw = row.memory as Partial<PreferenceMemory>
-  return {
-    globalTendencies: raw.globalTendencies ?? [],
-    recipeAdjustments: raw.recipeAdjustments ?? [],
-  }
+  const parsed = preferenceMemorySchema.safeParse(row.memory)
+  return parsed.success ? parsed.data : { ...EMPTY_PREFERENCE }
 }
 
 export async function upsertPreference(mem: PreferenceMemory): Promise<void> {
