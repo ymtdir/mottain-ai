@@ -315,7 +315,7 @@ export function SessionSidebar({
           <AlertDialogFooter>
             <AlertDialogCancel>キャンセル</AlertDialogCancel>
             <AlertDialogAction
-              className="text-destructive-foreground bg-destructive hover:bg-destructive/90"
+              variant="destructive"
               onClick={() => {
                 if (deletingSession) {
                   onDelete(deletingSession.id)
