@@ -13,7 +13,6 @@ export type UserContext = {
   avoidanceItems: Array<{
     name: string
     aliases: string[]
-    type: "allergy" | "dislike"
   }>
   preferenceMemory: PreferenceMemory
 }
@@ -39,11 +38,7 @@ export function buildSystemPrompt(ctx: UserContext): string {
 
   // 回避制約（ハード）— 好みより常に優先する（FR-024）
   if (ctx.avoidanceItems.length > 0) {
-    const list = ctx.avoidanceItems
-      .map(
-        (i) => `${i.name}（${i.type === "allergy" ? "アレルギー" : "苦手"}）`
-      )
-      .join("、")
+    const list = ctx.avoidanceItems.map((i) => i.name).join("、")
     parts.push(
       `\n## 絶対に使用禁止の食材（ハード制約・例外なし）\n${list}\n上記は献立・買い物リストのいずれにも含めないでください。回避すると成立しない場合は混入させず、その旨と代替案を伝えてください。`
     )

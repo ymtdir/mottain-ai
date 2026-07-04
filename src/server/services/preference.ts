@@ -3,6 +3,7 @@ import { preferenceProfiles } from "../db/schema"
 import { eq } from "drizzle-orm"
 import { z } from "zod"
 import { FIXED_USER_ID } from "../db/constants"
+import { ensureUser } from "../db/ensure-user"
 
 /** 全体的な味の傾向（「辛さを抑える」「塩分を控える」など） */
 export type GlobalTendency = {
@@ -113,6 +114,7 @@ export async function getPreference(): Promise<PreferenceMemory> {
 }
 
 export async function upsertPreference(mem: PreferenceMemory): Promise<void> {
+  await ensureUser()
   await db
     .insert(preferenceProfiles)
     .values({ userId: FIXED_USER_ID, memory: mem })

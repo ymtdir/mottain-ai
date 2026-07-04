@@ -77,8 +77,7 @@ function buildRevisionPrompt(
       .map((a) => {
         const aliases =
           a.aliases.length > 0 ? `（別名: ${a.aliases.join("、")}）` : ""
-        const label = a.type === "allergy" ? "アレルギー" : "苦手"
-        return `- ${a.name}${aliases}【${label}】`
+        return `- ${a.name}${aliases}`
       })
       .join("\n")
     parts.push(

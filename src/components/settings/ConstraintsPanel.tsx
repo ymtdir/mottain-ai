@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useState, useRef } from "react"
+import { X } from "lucide-react"
 import type { AvoidanceItem } from "@/server/services/avoidance-guard"
 
 type Props = {
@@ -7,47 +8,39 @@ type Props = {
   onRemove: (name: string) => void
 }
 
-const TYPE_LABELS: Record<AvoidanceItem["type"], string> = {
-  allergy: "アレルギー",
-  dislike: "苦手",
-}
-
 export function ConstraintsPanel({ items, onAdd, onRemove }: Props) {
   const [name, setName] = useState("")
-  const [type, setType] = useState<AvoidanceItem["type"]>("dislike")
+  const isComposing = useRef(false)
 
   function handleAdd() {
     const trimmed = name.trim()
     if (!trimmed) return
-    onAdd({ name: trimmed, aliases: [], type })
+    onAdd({ name: trimmed, aliases: [] })
     setName("")
   }
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter") handleAdd()
-  }
-
   return (
-    <div className="flex flex-col gap-3">
-      <p className="text-sm font-medium">回避食材（アレルギー・苦手）</p>
-
+    <div className="flex flex-col gap-2">
       <div className="flex gap-2">
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="食材名を入力"
-          className="flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm"
+          onCompositionStart={() => {
+            isComposing.current = true
+          }}
+          onCompositionEnd={() => {
+            isComposing.current = false
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !isComposing.current) {
+              e.preventDefault()
+              handleAdd()
+            }
+          }}
+          placeholder="食材名・料理名を入力"
+          className="min-w-0 flex-1 rounded-md border border-input bg-background px-2.5 py-1.5 text-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
         />
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value as AvoidanceItem["type"])}
-          className="rounded-md border border-input bg-background px-2 py-1.5 text-sm"
-        >
-          <option value="dislike">苦手</option>
-          <option value="allergy">アレルギー</option>
-        </select>
         <button
           onClick={handleAdd}
           disabled={!name.trim()}
@@ -58,27 +51,21 @@ export function ConstraintsPanel({ items, onAdd, onRemove }: Props) {
       </div>
 
       {items.length === 0 ? (
-        <p className="text-xs text-muted-foreground">
-          回避食材は登録されていません。
-        </p>
+        <p className="text-xs text-muted-foreground">回避リストは空です。</p>
       ) : (
-        <ul className="flex flex-col gap-1.5">
+        <ul className="flex flex-col gap-1">
           {items.map((item) => (
             <li
               key={item.name}
-              className="flex items-center justify-between rounded-md border px-3 py-1.5 text-sm"
+              className="flex items-center justify-between rounded-md border px-2.5 py-1.5 text-sm"
             >
-              <span>
-                {item.name}
-                <span className="ml-1.5 text-xs text-muted-foreground">
-                  {TYPE_LABELS[item.type]}
-                </span>
-              </span>
+              <span>{item.name}</span>
               <button
                 onClick={() => onRemove(item.name)}
-                className="text-xs text-muted-foreground hover:text-destructive"
+                className="text-muted-foreground hover:text-destructive"
+                aria-label={`${item.name}を削除`}
               >
-                削除
+                <X size={14} />
               </button>
             </li>
           ))}

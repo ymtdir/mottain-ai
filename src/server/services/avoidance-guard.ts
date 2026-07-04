@@ -4,7 +4,6 @@ import type { ShoppingList } from "./shopping-list"
 export type AvoidanceItem = {
   name: string
   aliases: string[]
-  type: "allergy" | "dislike"
 }
 
 export type AvoidanceViolation = {

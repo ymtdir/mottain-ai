@@ -21,7 +21,7 @@ describe.skipIf(!hasCredentials)(
   () => {
     it("回避食材が献立に 0% 混入しない（SC-001）", async () => {
       const avoidanceItems: AvoidanceItem[] = [
-        { name: "えび", aliases: ["海老", "エビ", "蝦"], type: "allergy" },
+        { name: "えび", aliases: ["海老", "エビ", "蝦"] },
       ]
 
       const inventory = normalizeInventory([
@@ -50,8 +50,8 @@ describe.skipIf(!hasCredentials)(
 
     it("複数の回避食材がすべて献立に含まれない", async () => {
       const avoidanceItems: AvoidanceItem[] = [
-        { name: "牛肉", aliases: ["ビーフ"], type: "dislike" },
-        { name: "ピーマン", aliases: [], type: "dislike" },
+        { name: "牛肉", aliases: ["ビーフ"] },
+        { name: "ピーマン", aliases: [] },
       ]
 
       const inventory = normalizeInventory([

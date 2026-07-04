@@ -5,8 +5,11 @@ import { ShoppingListCard } from "@/components/meal-plan/ShoppingListCard"
 import type { MealPlan } from "@/server/services/meal-plan"
 import type { ShoppingList } from "@/server/services/shopping-list"
 
+type ChatStatus = "submitted" | "streaming" | "ready" | "error"
+
 type Props = {
   messages: UIMessage[]
+  status: ChatStatus
 }
 
 /** generateMealPlan ツールの出力構造 */
@@ -23,6 +26,15 @@ type RevisionToolOutput = {
   updatedShoppingList: ShoppingList
   preferenceNote: string | null
   violationNote: string | null
+}
+
+/** ツール名 → 実行中に表示するラベル */
+const TOOL_LOADING_LABEL: Record<string, string> = {
+  interpretInventory: "食材を確認中...",
+  generateMealPlan: "献立を生成中...",
+  updateConstraints: "設定を更新中...",
+  reviseMealPlan: "献立を変更中...",
+  learnPreference: "好みを記録中...",
 }
 
 function TextBubble({ text, role }: { text: string; role: UIMessage["role"] }) {
@@ -43,7 +55,23 @@ function TextBubble({ text, role }: { text: string; role: UIMessage["role"] }) {
   )
 }
 
-export function MessageList({ messages }: Props) {
+/** ツール実行中・応答待ちに表示するインジケーター */
+function ThinkingBubble({ label }: { label: string }) {
+  return (
+    <div className="flex justify-start">
+      <div className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-sm text-muted-foreground">
+        <span className="flex gap-0.5">
+          <span className="animate-bounce [animation-delay:-0.3s]">·</span>
+          <span className="animate-bounce [animation-delay:-0.15s]">·</span>
+          <span className="animate-bounce">·</span>
+        </span>
+        {label}
+      </div>
+    </div>
+  )
+}
+
+export function MessageList({ messages, status }: Props) {
   if (messages.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
@@ -51,6 +79,11 @@ export function MessageList({ messages }: Props) {
       </div>
     )
   }
+
+  const isActive = status === "submitted" || status === "streaming"
+  const lastMessage = messages[messages.length - 1]
+  // 最後のメッセージがユーザーで応答待ちのとき、考え中バブルを出す
+  const showSubmittedBubble = isActive && lastMessage.role === "user"
 
   return (
     <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
@@ -64,55 +97,79 @@ export function MessageList({ messages }: Props) {
               )
             }
 
-            // 献立生成ツールの結果を献立カード・買い物リストとして描画する
-            if (
-              isToolUIPart(part) &&
-              getToolName(part) === "generateMealPlan" &&
-              part.state === "output-available"
-            ) {
-              const output = part.output as MealPlanToolOutput
-              return (
-                <div key={index} className="flex flex-col gap-3">
-                  {output.dayNote && (
-                    <p className="text-xs text-muted-foreground">
-                      {output.dayNote}
-                    </p>
-                  )}
-                  {output.violationNote && (
-                    <p className="rounded bg-red-50 px-2 py-1 text-xs text-red-700">
-                      ⚠️ {output.violationNote}
-                    </p>
-                  )}
-                  <MealPlanCard mealPlan={output.mealPlan} />
-                  <ShoppingListCard shoppingList={output.shoppingList} />
-                </div>
-              )
-            }
+            if (isToolUIPart(part)) {
+              const toolName = getToolName(part)
 
-            // 献立変更ツールの結果を更新後の献立カードとして描画する
-            if (
-              isToolUIPart(part) &&
-              getToolName(part) === "reviseMealPlan" &&
-              part.state === "output-available"
-            ) {
-              const output = part.output as RevisionToolOutput
-              return (
-                <div key={index} className="flex flex-col gap-3">
-                  {output.violationNote && (
-                    <p className="rounded bg-red-50 px-2 py-1 text-xs text-red-700">
-                      ⚠️ {output.violationNote}
-                    </p>
-                  )}
-                  <MealPlanCard mealPlan={output.updatedMealPlan} />
-                  <ShoppingListCard shoppingList={output.updatedShoppingList} />
-                </div>
-              )
+              // ツール実行中（結果待ち）はインジケーターを表示する
+              if (part.state === "input-available") {
+                const label = TOOL_LOADING_LABEL[toolName] ?? "処理中..."
+                return <ThinkingBubble key={index} label={label} />
+              }
+
+              // 献立生成ツールの結果を献立カード・買い物リストとして描画する
+              if (
+                toolName === "generateMealPlan" &&
+                part.state === "output-available"
+              ) {
+                const output = part.output as MealPlanToolOutput
+                return (
+                  <div key={index} className="flex flex-col gap-3">
+                    {output.dayNote && (
+                      <p className="text-xs text-muted-foreground">
+                        {output.dayNote}
+                      </p>
+                    )}
+                    {output.violationNote && (
+                      <p className="rounded bg-red-50 px-2 py-1 text-xs text-red-700">
+                        ⚠️ {output.violationNote}
+                      </p>
+                    )}
+                    <MealPlanCard mealPlan={output.mealPlan} />
+                    <ShoppingListCard shoppingList={output.shoppingList} />
+                  </div>
+                )
+              }
+
+              // 献立変更ツールの結果を更新後の献立カードとして描画する
+              if (
+                toolName === "reviseMealPlan" &&
+                part.state === "output-available"
+              ) {
+                const output = part.output as RevisionToolOutput
+                return (
+                  <div key={index} className="flex flex-col gap-3">
+                    {output.violationNote && (
+                      <p className="rounded bg-red-50 px-2 py-1 text-xs text-red-700">
+                        ⚠️ {output.violationNote}
+                      </p>
+                    )}
+                    <MealPlanCard mealPlan={output.updatedMealPlan} />
+                    <ShoppingListCard
+                      shoppingList={output.updatedShoppingList}
+                    />
+                  </div>
+                )
+              }
+
+              if (part.state === "output-error") {
+                return (
+                  <p
+                    key={index}
+                    className="rounded bg-red-50 px-2 py-1 text-xs text-red-700"
+                  >
+                    ツールの実行中にエラーが発生しました。
+                  </p>
+                )
+              }
             }
 
             return null
           })}
         </div>
       ))}
+
+      {/* 最初のトークンが来る前（submitted 状態）に考え中バブルを表示する */}
+      {showSubmittedBubble && <ThinkingBubble label="考え中..." />}
     </div>
   )
 }

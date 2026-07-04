@@ -1,4 +1,11 @@
-import { pgTable, uuid, jsonb, timestamp } from "drizzle-orm/pg-core"
+import {
+  pgTable,
+  uuid,
+  jsonb,
+  timestamp,
+  text,
+  index,
+} from "drizzle-orm/pg-core"
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -14,12 +21,48 @@ export const dietaryConstraints = pgTable("dietary_constraints", {
     .notNull()
     .unique()
     .references(() => users.id),
-  // [{ name: string, aliases: string[], type: "allergy" | "dislike" }]
+  // [{ name: string, aliases: string[] }]
   items: jsonb("items").notNull().default([]),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
 })
+
+// チャットセッション（1ユーザー複数スレッド）
+export const chatSessions = pgTable(
+  "chat_sessions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    name: text("name").notNull().default("新しい会話"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("chat_sessions_user_id_idx").on(t.userId)]
+)
+
+// チャットメッセージ（UIMessage の parts を JSONB で保持）
+export const chatMessages = pgTable(
+  "chat_messages",
+  {
+    id: text("id").primaryKey(),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => chatSessions.id, { onDelete: "cascade" }),
+    role: text("role").notNull(),
+    parts: jsonb("parts").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("chat_messages_session_id_idx").on(t.sessionId)]
+)
 
 // 好みメモリ（ソフト）。全体傾向 + レシピ固有調整を JSONB で保持し、提案時にコンテキスト注入する
 export const preferenceProfiles = pgTable("preference_profiles", {
