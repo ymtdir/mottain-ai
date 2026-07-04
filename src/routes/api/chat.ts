@@ -3,10 +3,6 @@ import { convertToModelMessages } from "ai"
 import type { UIMessage } from "ai"
 import { runAgent } from "../../server/agent/agent"
 
-/**
- * ストリーミングチャットのサーバールート（T013）。
- * useChat（@ai-sdk/react）が POST する /api/chat エンドポイント。
- */
 export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
