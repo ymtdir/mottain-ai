@@ -1,6 +1,6 @@
 import type { FormEvent } from "react"
 import { useRef } from "react"
-import { Button } from "@/components/ui/button"
+import { ArrowUp } from "lucide-react"
 
 type Props = {
   input: string
@@ -16,12 +16,13 @@ export function ChatInput({
   onSubmit,
 }: Props) {
   const isComposing = useRef(false)
+  const hasInput = input.trim().length > 0
 
   return (
-    <form onSubmit={onSubmit} className="flex gap-2 border-t p-4">
+    <form onSubmit={onSubmit} className="relative p-4">
       <textarea
-        className="flex-1 resize-none rounded-md border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
-        rows={2}
+        className="w-full resize-none rounded-xl border bg-background px-3 py-2.5 pr-12 text-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
+        rows={4}
         value={input}
         placeholder="在庫を伝えて献立を依頼しましょう（例: じゃがいも、人参、玉ねぎがあります。3日分の夕食を考えて）"
         onChange={(e) => onInputChange(e.target.value)}
@@ -38,9 +39,15 @@ export function ChatInput({
           }
         }}
       />
-      <Button type="submit" disabled={isLoading || !input.trim()}>
-        {isLoading ? "生成中…" : "送信"}
-      </Button>
+      {(hasInput || isLoading) && (
+        <button
+          type="submit"
+          disabled={isLoading || !hasInput}
+          className="absolute right-7 bottom-7 flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-opacity disabled:opacity-50"
+        >
+          <ArrowUp size={16} />
+        </button>
+      )}
     </form>
   )
 }
