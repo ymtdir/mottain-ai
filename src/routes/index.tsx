@@ -1,22 +1,45 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useChat } from "@ai-sdk/react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import type { FormEvent } from "react"
-import { Settings } from "lucide-react"
+import type { UIMessage } from "ai"
 import { ChatInput } from "@/components/chat/ChatInput"
 import { MessageList } from "@/components/chat/MessageList"
-import { ConstraintsPanel } from "@/components/settings/ConstraintsPanel"
-import type { AvoidanceItem } from "@/server/services/dietary-constraint"
+import { SessionSidebar } from "@/components/chat/SessionSidebar"
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import type { ChatSession } from "@/server/services/chat-session"
+import type { AvoidanceItem } from "@/server/services/avoidance-guard"
+import type { PreferenceMemory } from "@/server/services/preference"
 
 export const Route = createFileRoute("/")({ component: ChatPage })
 
 function ChatPage() {
-  const { messages, sendMessage, status } = useChat()
+  const [sessions, setSessions] = useState<ChatSession[]>([])
+  const [activeId, setActiveId] = useState<string | null>(null)
+  const [constraints, setConstraints] = useState<AvoidanceItem[]>([])
+  const [preferences, setPreferences] = useState<PreferenceMemory>({
+    globalTendencies: [],
+    recipeAdjustments: [],
+  })
   const [input, setInput] = useState("")
+  const pendingSave = useRef(false)
+
+  const { messages, setMessages, sendMessage, status } = useChat({
+    onFinish: () => {
+      pendingSave.current = true
+    },
+  })
   const isLoading = status === "submitted" || status === "streaming"
 
-  const [settingsOpen, setSettingsOpen] = useState(false)
-  const [constraints, setConstraints] = useState<AvoidanceItem[]>([])
+  useEffect(() => {
+    fetch("/api/sessions")
+      .then((r) => r.json())
+      .then((data: ChatSession[]) => {
+        setSessions(data)
+        if (data.length > 0) loadSession(data[0].id)
+      })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     fetch("/api/constraints")
@@ -25,67 +48,180 @@ function ChatPage() {
       .catch(() => {})
   }, [])
 
-  async function handleAdd(item: AvoidanceItem) {
+  useEffect(() => {
+    fetch("/api/preferences")
+      .then((r) => r.json())
+      .then(setPreferences)
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    if (pendingSave.current && !isLoading && activeId && messages.length > 0) {
+      pendingSave.current = false
+      fetch(`/api/sessions/${activeId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages }),
+      }).catch(() => {})
+    }
+  }, [isLoading, activeId, messages])
+
+  function loadSession(id: string) {
+    setActiveId(id)
+    fetch(`/api/sessions/${id}`)
+      .then((r) => r.json())
+      .then((msgs: UIMessage[]) => setMessages(msgs))
+      .catch(() => {})
+  }
+
+  async function handleCreate() {
+    const res = await fetch("/api/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    })
+    const session: ChatSession = await res.json()
+    setSessions((prev) => [session, ...prev])
+    setActiveId(session.id)
+    setMessages([])
+  }
+
+  async function handleRename(id: string, name: string) {
+    await fetch(`/api/sessions/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    })
+    setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, name } : s)))
+  }
+
+  async function handleDelete(id: string) {
+    await fetch(`/api/sessions/${id}`, { method: "DELETE" })
+    setSessions((prev) => {
+      const next = prev.filter((s) => s.id !== id)
+      if (activeId === id) {
+        if (next.length > 0) loadSession(next[0].id)
+        else {
+          setActiveId(null)
+          setMessages([])
+        }
+      }
+      return next
+    })
+  }
+
+  const handleAddConstraint = useCallback(async (item: AvoidanceItem) => {
     await fetch("/api/constraints", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "add", item }),
     })
-    setConstraints((prev) => {
-      const deduped = prev.filter((c) => c.name !== item.name)
-      return [...deduped, item]
-    })
-  }
+    setConstraints((prev) => [
+      ...prev.filter((c) => c.name !== item.name),
+      item,
+    ])
+  }, [])
 
-  async function handleRemove(name: string) {
+  const handleRemoveConstraint = useCallback(async (name: string) => {
     await fetch("/api/constraints", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "remove", name }),
     })
     setConstraints((prev) => prev.filter((c) => c.name !== name))
-  }
+  }, [])
+
+  const handleAddTendency = useCallback(async (note: string) => {
+    await fetch("/api/preferences", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "add-tendency", note }),
+    })
+    setPreferences((prev) => ({
+      ...prev,
+      globalTendencies: [
+        ...prev.globalTendencies.filter((t) => t.attribute !== note),
+        { attribute: note, adjustmentNote: note, updatedAt: new Date().toISOString() },
+      ],
+    }))
+  }, [])
+
+  const handleRemoveTendency = useCallback(async (attribute: string) => {
+    await fetch("/api/preferences", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "remove-tendency", attribute }),
+    })
+    setPreferences((prev) => ({
+      ...prev,
+      globalTendencies: prev.globalTendencies.filter(
+        (t) => t.attribute !== attribute
+      ),
+    }))
+  }, [])
+
+  const handleRemoveRecipe = useCallback(async (recipeName: string) => {
+    await fetch("/api/preferences", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "remove-recipe", recipeName }),
+    })
+    setPreferences((prev) => ({
+      ...prev,
+      recipeAdjustments: prev.recipeAdjustments.filter(
+        (r) => r.recipeName !== recipeName
+      ),
+    }))
+  }, [])
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!input.trim() || isLoading) return
+
+    let sid = activeId
+    if (!sid) {
+      const res = await fetch("/api/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      })
+      const session: ChatSession = await res.json()
+      setSessions((prev) => [session, ...prev])
+      setActiveId(session.id)
+      sid = session.id
+    }
+
     const text = input.trim()
     setInput("")
     await sendMessage({ text })
   }
 
   return (
-    <div className="flex h-svh flex-col">
-      <header className="flex items-center justify-between border-b px-4 py-3">
-        <h1 className="font-[family-name:var(--font-display)] text-xl font-bold tracking-wide text-primary">
-          MottainAI
-        </h1>
-        <button
-          onClick={() => setSettingsOpen((v) => !v)}
-          className="rounded-md p-1.5 text-muted-foreground hover:bg-muted"
-          aria-label="設定"
-        >
-          <Settings size={18} />
-        </button>
-      </header>
-
-      {settingsOpen && (
-        <div className="border-b bg-card px-4 py-3">
-          <ConstraintsPanel
-            items={constraints}
-            onAdd={handleAdd}
-            onRemove={handleRemove}
-          />
-        </div>
-      )}
-
-      <MessageList messages={messages} status={status} />
-      <ChatInput
-        input={input}
-        isLoading={isLoading}
-        onInputChange={setInput}
-        onSubmit={handleSubmit}
+    <SidebarProvider>
+      <SessionSidebar
+        sessions={sessions}
+        activeId={activeId}
+        onSelect={loadSession}
+        onCreate={handleCreate}
+        onRename={handleRename}
+        onDelete={handleDelete}
+        constraints={constraints}
+        onAddConstraint={handleAddConstraint}
+        onRemoveConstraint={handleRemoveConstraint}
+        preferences={preferences}
+        onAddTendency={handleAddTendency}
+        onRemoveTendency={handleRemoveTendency}
+        onRemoveRecipe={handleRemoveRecipe}
       />
-    </div>
+      <SidebarInset className="flex h-svh flex-col">
+        <MessageList messages={messages} status={status} />
+        <ChatInput
+          input={input}
+          isLoading={isLoading}
+          onInputChange={setInput}
+          onSubmit={handleSubmit}
+        />
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
