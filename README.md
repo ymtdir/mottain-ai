@@ -109,8 +109,7 @@ gcloud auth application-default set-quota-project <プロジェクトID>
 #### 5. DB マイグレーションを実行する
 
 ```sh
-pnpm drizzle-kit generate   # SQL マイグレーションファイルを生成
-pnpm drizzle-kit migrate    # DB に適用
+pnpm drizzle-kit migrate    # DB に適用（drizzle/ 以下のファイルを順に実行）
 ```
 
 ---
