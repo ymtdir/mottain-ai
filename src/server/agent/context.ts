@@ -13,7 +13,6 @@ export type UserContext = {
   avoidanceItems: Array<{
     name: string
     aliases: string[]
-    type: "allergy" | "dislike"
   }>
   preferenceMemory: PreferenceMemory
 }
@@ -41,7 +40,7 @@ export function buildSystemPrompt(ctx: UserContext): string {
   if (ctx.avoidanceItems.length > 0) {
     const list = ctx.avoidanceItems
       .map(
-        (i) => `${i.name}（${i.type === "allergy" ? "アレルギー" : "苦手"}）`
+        (i) => i.name
       )
       .join("、")
     parts.push(
