@@ -49,10 +49,15 @@ const preferenceMemorySchema = z.object({
     .default([]),
 })
 
+// コンテキスト注入時のトークン肥大を防ぐ上限（R8 未決事項の対応）
+const MAX_TENDENCIES = 20
+const MAX_RECIPE_ADJUSTMENTS = 30
+
 /**
  * 好みメモリをマージする（FR-021/023）。
  * 同じ attribute / recipeName は直近（update 側）を優先する。
  */
+
 export function mergePreference(
   existing: PreferenceMemory,
   update: Partial<PreferenceMemory>
@@ -77,7 +82,21 @@ export function mergePreference(
     }
   }
 
-  return { globalTendencies: tendencies, recipeAdjustments: recipes }
+  // 上限超過分は updatedAt の古い順に剪定する（直近を優先）
+  const trimByDate = <T extends { updatedAt: string }>(
+    arr: T[],
+    max: number
+  ): T[] =>
+    arr.length <= max
+      ? arr
+      : [...arr]
+          .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+          .slice(0, max)
+
+  return {
+    globalTendencies: trimByDate(tendencies, MAX_TENDENCIES),
+    recipeAdjustments: trimByDate(recipes, MAX_RECIPE_ADJUSTMENTS),
+  }
 }
 
 export function isEmptyPreference(mem: PreferenceMemory): boolean {
