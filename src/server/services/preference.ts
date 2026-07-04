@@ -75,20 +75,13 @@ export async function getPreference(): Promise<PreferenceMemory> {
 }
 
 export async function upsertPreference(mem: PreferenceMemory): Promise<void> {
-  const existing = await db.query.preferenceProfiles.findFirst({
-    where: eq(preferenceProfiles.userId, FIXED_USER_ID),
-  })
-  if (existing) {
-    await db
-      .update(preferenceProfiles)
-      .set({ memory: mem, updatedAt: new Date() })
-      .where(eq(preferenceProfiles.userId, FIXED_USER_ID))
-  } else {
-    await db.insert(preferenceProfiles).values({
-      userId: FIXED_USER_ID,
-      memory: mem,
+  await db
+    .insert(preferenceProfiles)
+    .values({ userId: FIXED_USER_ID, memory: mem })
+    .onConflictDoUpdate({
+      target: preferenceProfiles.userId,
+      set: { memory: mem, updatedAt: new Date() },
     })
-  }
 }
 
 export async function applyPreferenceFeedback(

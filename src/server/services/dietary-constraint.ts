@@ -14,21 +14,13 @@ export async function getConstraints(): Promise<AvoidanceItem[]> {
 }
 
 export async function upsertConstraints(items: AvoidanceItem[]): Promise<void> {
-  const existing = await db.query.dietaryConstraints.findFirst({
-    where: eq(dietaryConstraints.userId, FIXED_USER_ID),
-  })
-
-  if (existing) {
-    await db
-      .update(dietaryConstraints)
-      .set({ items, updatedAt: new Date() })
-      .where(eq(dietaryConstraints.userId, FIXED_USER_ID))
-  } else {
-    await db.insert(dietaryConstraints).values({
-      userId: FIXED_USER_ID,
-      items,
+  await db
+    .insert(dietaryConstraints)
+    .values({ userId: FIXED_USER_ID, items })
+    .onConflictDoUpdate({
+      target: dietaryConstraints.userId,
+      set: { items, updatedAt: new Date() },
     })
-  }
 }
 
 export async function addConstraint(item: AvoidanceItem): Promise<void> {
