@@ -23,11 +23,11 @@ function ChatPage() {
   return (
     <div className="flex h-svh flex-col">
       <header className="border-b px-4 py-3">
-        <h1 className="text-sm font-medium">
-          もったいない AI — 献立エージェント
+        <h1 className="font-[family-name:var(--font-display)] text-xl font-bold tracking-wide text-primary">
+          MottainAI
         </h1>
       </header>
-      <MessageList messages={messages} />
+      <MessageList messages={messages} status={status} />
       <ChatInput
         input={input}
         isLoading={isLoading}
