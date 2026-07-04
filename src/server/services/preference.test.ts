@@ -1,20 +1,14 @@
 import { describe, it, expect } from "vitest"
-import { normalizeInventory } from "../services/inventory"
-import { validateDays, generateMealPlan } from "../services/meal-plan"
+import { normalizeInventory } from "./inventory"
+import { validateDays, generateMealPlan } from "./meal-plan"
 import {
   mergePreference,
   isEmptyPreference,
   buildPreferenceContext,
   EMPTY_PREFERENCE,
-} from "../services/preference"
-import type { PreferenceMemory } from "../services/preference"
+} from "./preference"
+import type { PreferenceMemory } from "./preference"
 
-/**
- * US4 テスト（T039/T040）。
- *
- * 好みメモリのマージ・コンテキスト生成は決定的ロジックのため常時実行。
- * LLM を使う統合部分は GOOGLE_CLOUD_PROJECT がある場合のみ実行。
- */
 const hasCredentials = Boolean(process.env.GOOGLE_CLOUD_PROJECT)
 
 // ── 決定的ロジック（常時実行）──────────────────────────────
