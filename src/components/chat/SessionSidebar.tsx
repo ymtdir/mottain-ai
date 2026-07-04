@@ -27,6 +27,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { ConstraintsPanel } from "@/components/settings/ConstraintsPanel"
 import { PreferencesView } from "@/components/settings/PreferencesView"
 import type { ChatSession } from "@/server/services/chat-session"
@@ -102,6 +112,9 @@ export function SessionSidebar({
 }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState("")
+  const [deletingSession, setDeletingSession] = useState<ChatSession | null>(
+    null
+  )
   const [constraintsOpen, setConstraintsOpen] = useState(false)
   const [prefsOpen, setPrefsOpen] = useState(false)
   const isComposing = useRef(false)
@@ -215,9 +228,7 @@ export function SessionSidebar({
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
-                          if (window.confirm(`「${s.name}」を削除しますか？`)) {
-                            onDelete(s.id)
-                          }
+                          setDeletingSession(s)
                         }}
                         className="rounded p-0.5 text-muted-foreground hover:bg-sidebar-accent hover:text-destructive"
                         aria-label={`${s.name}を削除`}
@@ -285,6 +296,38 @@ export function SessionSidebar({
           />
         </DialogContent>
       </Dialog>
+
+      {/* セッション削除確認ダイアログ */}
+      <AlertDialog
+        open={!!deletingSession}
+        onOpenChange={(open) => {
+          if (!open) setDeletingSession(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>会話を削除しますか？</AlertDialogTitle>
+            <AlertDialogDescription>
+              「{deletingSession?.name}
+              」を削除します。この操作は取り消せません。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogAction
+              className="text-destructive-foreground bg-destructive hover:bg-destructive/90"
+              onClick={() => {
+                if (deletingSession) {
+                  onDelete(deletingSession.id)
+                  setDeletingSession(null)
+                }
+              }}
+            >
+              削除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }
