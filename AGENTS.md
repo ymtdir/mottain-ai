@@ -40,6 +40,12 @@ Conventional Commits に従い、作業単位でアトミックに行う。
 
 → [`docs/project-structure.md`](docs/project-structure.md)
 
+## デザインシステム
+
+配色・タイポグラフィ・コンポーネントのトークンは DESIGN.md を正とする。Google Labs の DESIGN.md フォーマット（front matter のトークン ＋ Markdown の設計意図）に準拠する。UI を実装・変更するときは必ず参照し、生の色を直書きせずセマンティックトークンを使う。トークンの実体は `src/styles.css` の CSS 変数であり、DESIGN.md と同期する。
+
+→ [`DESIGN.md`](DESIGN.md)
+
 ## 技術選定の記録（ADR）
 
 技術・アーキテクチャ上の決定は `docs/adr/` に ADR として残す。作成は `/create-adr` で行う。
