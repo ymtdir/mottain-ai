@@ -1,10 +1,14 @@
 import { db } from "../db/client"
-import { dietaryConstraints } from "../db/schema"
+import { dietaryConstraints, users } from "../db/schema"
 import { eq } from "drizzle-orm"
 import { FIXED_USER_ID } from "../db/constants"
 import type { AvoidanceItem } from "./avoidance-guard"
 
 export type { AvoidanceItem }
+
+async function ensureUser(): Promise<void> {
+  await db.insert(users).values({ id: FIXED_USER_ID }).onConflictDoNothing()
+}
 
 export async function getConstraints(): Promise<AvoidanceItem[]> {
   const row = await db.query.dietaryConstraints.findFirst({
@@ -14,6 +18,7 @@ export async function getConstraints(): Promise<AvoidanceItem[]> {
 }
 
 export async function upsertConstraints(items: AvoidanceItem[]): Promise<void> {
+  await ensureUser()
   await db
     .insert(dietaryConstraints)
     .values({ userId: FIXED_USER_ID, items })
