@@ -50,7 +50,7 @@ export const Route = createFileRoute("/api/preferences")({
               (t) => t.attribute !== body.attribute
             ),
           })
-        } else if (body.action === "remove-recipe") {
+        } else {
           await upsertPreference({
             ...existing,
             recipeAdjustments: existing.recipeAdjustments.filter(
