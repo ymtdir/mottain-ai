@@ -76,7 +76,7 @@ export function MessageList({ messages, status }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
   }, [messages, status])
 
   if (messages.length === 0) {

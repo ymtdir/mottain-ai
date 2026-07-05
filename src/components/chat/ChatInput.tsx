@@ -43,6 +43,7 @@ export function ChatInput({
         <button
           type="submit"
           disabled={isLoading || !hasInput}
+          aria-label="送信"
           className="absolute right-7 bottom-7 flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-opacity disabled:opacity-50"
         >
           <ArrowUp size={16} />

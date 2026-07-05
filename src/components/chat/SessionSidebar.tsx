@@ -115,6 +115,9 @@ export function SessionSidebar({
   const [deletingSession, setDeletingSession] = useState<ChatSession | null>(
     null
   )
+  // クローズアニメーション中もセッション名を表示し続けるため最後の非null値を保持する
+  const deletingSessionRef = useRef<ChatSession | null>(null)
+  if (deletingSession) deletingSessionRef.current = deletingSession
   const [constraintsOpen, setConstraintsOpen] = useState(false)
   const [prefsOpen, setPrefsOpen] = useState(false)
   const isComposing = useRef(false)
@@ -308,7 +311,7 @@ export function SessionSidebar({
           <AlertDialogHeader>
             <AlertDialogTitle>会話を削除しますか？</AlertDialogTitle>
             <AlertDialogDescription>
-              「{deletingSession?.name}
+              「{deletingSessionRef.current?.name}
               」を削除します。この操作は取り消せません。
             </AlertDialogDescription>
           </AlertDialogHeader>
