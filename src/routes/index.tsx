@@ -25,9 +25,17 @@ function ChatPage() {
   const pendingSave = useRef(false)
   const loadingSessionId = useRef<string | null>(null)
 
+  const loadPreferences = useCallback(() => {
+    fetch("/api/preferences")
+      .then((r) => r.json())
+      .then(setPreferences)
+      .catch(() => {})
+  }, [])
+
   const { messages, setMessages, sendMessage, status } = useChat({
     onFinish: () => {
       pendingSave.current = true
+      loadPreferences()
     },
   })
   const isLoading = status === "submitted" || status === "streaming"
@@ -50,11 +58,8 @@ function ChatPage() {
   }, [])
 
   useEffect(() => {
-    fetch("/api/preferences")
-      .then((r) => r.json())
-      .then(setPreferences)
-      .catch(() => {})
-  }, [])
+    loadPreferences()
+  }, [loadPreferences])
 
   useEffect(() => {
     if (pendingSave.current && !isLoading && activeId && messages.length > 0) {
