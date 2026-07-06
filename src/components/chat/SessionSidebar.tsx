@@ -10,6 +10,7 @@ import {
   PanelLeftOpen,
   SlidersHorizontal,
   HeartCrack,
+  BookMarked,
 } from "lucide-react"
 import {
   Sidebar,
@@ -39,9 +40,11 @@ import {
 } from "@/components/ui/alert-dialog"
 import { ConstraintsPanel } from "@/components/settings/ConstraintsPanel"
 import { PreferencesView } from "@/components/settings/PreferencesView"
+import { SavedRecipesView } from "@/components/recipe/SavedRecipesView"
 import type { ChatSession } from "@/server/services/chat-session"
 import type { AvoidanceItem } from "@/server/services/avoidance-guard"
 import type { PreferenceMemory } from "@/server/services/preference"
+import type { SavedRecipeListItem } from "@/server/services/saved-recipe"
 
 function ExpandedToggle() {
   const { toggleSidebar } = useSidebar()
@@ -93,6 +96,7 @@ type Props = {
   onAddTendency: (note: string) => void
   onRemoveTendency: (attribute: string) => void
   onRemoveRecipe: (recipeName: string) => void
+  savedRecipes: SavedRecipeListItem[]
 }
 
 export function SessionSidebar({
@@ -109,6 +113,7 @@ export function SessionSidebar({
   onAddTendency,
   onRemoveTendency,
   onRemoveRecipe,
+  savedRecipes,
 }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState("")
@@ -120,6 +125,7 @@ export function SessionSidebar({
   if (deletingSession) deletingSessionRef.current = deletingSession
   const [constraintsOpen, setConstraintsOpen] = useState(false)
   const [prefsOpen, setPrefsOpen] = useState(false)
+  const [savedRecipesOpen, setSavedRecipesOpen] = useState(false)
   const isComposing = useRef(false)
 
   function startEdit(s: ChatSession) {
@@ -251,6 +257,15 @@ export function SessionSidebar({
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
+                onClick={() => setSavedRecipesOpen(true)}
+                tooltip="保存レシピ"
+              >
+                <BookMarked size={17} />
+                <span>保存レシピ</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
                 onClick={() => setPrefsOpen(true)}
                 tooltip="食の好み"
               >
@@ -270,6 +285,16 @@ export function SessionSidebar({
           </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
+
+      {/* 保存レシピダイアログ */}
+      <Dialog open={savedRecipesOpen} onOpenChange={setSavedRecipesOpen}>
+        <DialogContent className="max-h-[80vh] max-w-sm overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>保存レシピ</DialogTitle>
+          </DialogHeader>
+          <SavedRecipesView recipes={savedRecipes} />
+        </DialogContent>
+      </Dialog>
 
       {/* 好みダイアログ */}
       <Dialog open={prefsOpen} onOpenChange={setPrefsOpen}>

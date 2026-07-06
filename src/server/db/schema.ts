@@ -5,7 +5,15 @@ import {
   timestamp,
   text,
   index,
+  uniqueIndex,
+  customType,
 } from "drizzle-orm/pg-core"
+
+const pgBytea = customType<{ data: Buffer; driverData: Buffer }>({
+  dataType() {
+    return "bytea"
+  },
+})
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -62,6 +70,38 @@ export const chatMessages = pgTable(
       .defaultNow(),
   },
   (t) => [index("chat_messages_session_id_idx").on(t.sessionId)]
+)
+
+// お気に入り登録レシピ（非同期イラスト付き）
+export const savedRecipes = pgTable(
+  "saved_recipes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    normalizedTitle: text("normalized_title").notNull(),
+    content: jsonb("content").notNull(),
+    illustrationStatus: text("illustration_status")
+      .notNull()
+      .default("pending"),
+    illustrationData: pgBytea("illustration_data"),
+    illustrationMime: text("illustration_mime"),
+    illustrationError: text("illustration_error"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("saved_recipes_user_normalized_idx").on(
+      t.userId,
+      t.normalizedTitle
+    ),
+    index("saved_recipes_user_id_idx").on(t.userId),
+  ]
 )
 
 // 好みメモリ（ソフト）。全体傾向 + レシピ固有調整を JSONB で保持し、提案時にコンテキスト注入する
