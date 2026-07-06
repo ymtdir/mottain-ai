@@ -292,7 +292,7 @@ export function SessionSidebar({
 
       {/* 保存レシピダイアログ */}
       <Dialog open={savedRecipesOpen} onOpenChange={setSavedRecipesOpen}>
-        <DialogContent className="max-h-[80vh] max-w-sm overflow-y-auto">
+        <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>保存レシピ</DialogTitle>
           </DialogHeader>
