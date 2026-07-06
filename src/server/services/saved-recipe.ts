@@ -207,7 +207,7 @@ export async function ensureIllustration(id: string): Promise<void> {
   }
 }
 
-/** 保存レシピを削除する（FR-010）。存在しない ID は no-op */
+/** 存在しない ID は no-op */
 export async function deleteRecipe(id: string): Promise<void> {
   await db
     .delete(savedRecipes)
