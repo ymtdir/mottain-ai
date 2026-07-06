@@ -5,12 +5,25 @@ import {
   ImageOff,
   Loader2,
   RotateCw,
+  Trash2,
 } from "lucide-react"
 import type { SavedRecipeListItem } from "@/server/services/saved-recipe"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 type Props = {
   recipe: SavedRecipeListItem
   onRetry: () => void
+  onDelete: () => void
 }
 
 function IllustrationArea({
@@ -57,7 +70,7 @@ function IllustrationArea({
   )
 }
 
-export function SavedRecipeCard({ recipe, onRetry }: Props) {
+export function SavedRecipeCard({ recipe, onRetry, onDelete }: Props) {
   const [expanded, setExpanded] = useState(false)
 
   return (
@@ -68,18 +81,48 @@ export function SavedRecipeCard({ recipe, onRetry }: Props) {
         onRetry={onRetry}
       />
 
-      <button
-        onClick={() => setExpanded((v) => !v)}
-        className="mt-2 flex w-full items-center justify-between gap-2 text-left"
-        aria-expanded={expanded}
-      >
-        <span className="font-medium">{recipe.content.title}</span>
-        {expanded ? (
-          <ChevronUp size={15} className="shrink-0 text-muted-foreground" />
-        ) : (
-          <ChevronDown size={15} className="shrink-0 text-muted-foreground" />
-        )}
-      </button>
+      <div className="mt-2 flex w-full items-center gap-2">
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="flex min-w-0 flex-1 items-center justify-between gap-2 text-left"
+          aria-expanded={expanded}
+        >
+          <span className="truncate font-medium">{recipe.content.title}</span>
+          {expanded ? (
+            <ChevronUp size={15} className="shrink-0 text-muted-foreground" />
+          ) : (
+            <ChevronDown size={15} className="shrink-0 text-muted-foreground" />
+          )}
+        </button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button
+              aria-label="削除"
+              className="shrink-0 rounded p-0.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+            >
+              <Trash2 size={14} />
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>レシピを削除しますか？</AlertDialogTitle>
+              <AlertDialogDescription>
+                「{recipe.content.title}
+                」を削除します。この操作は取り消せません。
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>キャンセル</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={onDelete}
+                className="text-destructive-foreground bg-destructive hover:bg-destructive/90"
+              >
+                削除
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
 
       {expanded && (
         <div className="mt-2 flex flex-col gap-2">

@@ -207,6 +207,13 @@ export async function ensureIllustration(id: string): Promise<void> {
   }
 }
 
+/** 存在しない ID は no-op */
+export async function deleteRecipe(id: string): Promise<void> {
+  await db
+    .delete(savedRecipes)
+    .where(and(eq(savedRecipes.id, id), eq(savedRecipes.userId, FIXED_USER_ID)))
+}
+
 /** `ready` のときのみ画像バイトと MIME を返す（配信用）。それ以外は null */
 export async function getIllustration(
   id: string

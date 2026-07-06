@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useChat } from "@ai-sdk/react"
+import { toast } from "sonner"
 import { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import type { FormEvent } from "react"
 import type { UIMessage } from "ai"
@@ -64,6 +65,17 @@ function ChatPage() {
       .then((r) => r.json())
       .then((data: SavedRecipeListItem[]) => setSavedRecipes(data))
       .catch(() => {})
+  }, [])
+
+  const handleDeleteSavedRecipe = useCallback(async (id: string) => {
+    const res = await fetch(`/api/recipes/${id}`, { method: "DELETE" }).catch(
+      () => null
+    )
+    if (res?.ok) {
+      setSavedRecipes((prev) => prev.filter((r) => r.id !== id))
+    } else {
+      toast.error("削除に失敗しました。もう一度お試しください。")
+    }
   }, [])
 
   useEffect(() => {
@@ -246,6 +258,7 @@ function ChatPage() {
         onRemoveRecipe={handleRemoveRecipe}
         savedRecipes={savedRecipes}
         onRefreshSavedRecipes={loadSavedRecipes}
+        onDeleteSavedRecipe={handleDeleteSavedRecipe}
       />
       <SidebarInset className="flex h-svh flex-col">
         <MessageList
