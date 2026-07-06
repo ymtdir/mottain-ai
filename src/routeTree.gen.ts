@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiSessionsRouteImport } from './routes/api/sessions'
 import { Route as ApiRecipesRouteImport } from './routes/api/recipes'
@@ -20,11 +19,6 @@ import { Route as ApiSessionsSessionIdRouteImport } from './routes/api/sessions/
 import { Route as ApiRecipesIdRouteImport } from './routes/api/recipes/$id'
 import { Route as ApiRecipesIdIllustrationRouteImport } from './routes/api/recipes/$id.illustration'
 
-const FavoritesRoute = FavoritesRouteImport.update({
-  id: '/favorites',
-  path: '/favorites',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -74,7 +68,6 @@ const ApiRecipesIdIllustrationRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/favorites': typeof FavoritesRoute
   '/api/chat': typeof ApiChatRoute
   '/api/constraints': typeof ApiConstraintsRoute
   '/api/preferences': typeof ApiPreferencesRoute
@@ -86,7 +79,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/favorites': typeof FavoritesRoute
   '/api/chat': typeof ApiChatRoute
   '/api/constraints': typeof ApiConstraintsRoute
   '/api/preferences': typeof ApiPreferencesRoute
@@ -99,7 +91,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/favorites': typeof FavoritesRoute
   '/api/chat': typeof ApiChatRoute
   '/api/constraints': typeof ApiConstraintsRoute
   '/api/preferences': typeof ApiPreferencesRoute
@@ -113,7 +104,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/favorites'
     | '/api/chat'
     | '/api/constraints'
     | '/api/preferences'
@@ -125,7 +115,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/favorites'
     | '/api/chat'
     | '/api/constraints'
     | '/api/preferences'
@@ -137,7 +126,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/favorites'
     | '/api/chat'
     | '/api/constraints'
     | '/api/preferences'
@@ -150,7 +138,6 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  FavoritesRoute: typeof FavoritesRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiConstraintsRoute: typeof ApiConstraintsRoute
   ApiPreferencesRoute: typeof ApiPreferencesRoute
@@ -160,13 +147,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/favorites': {
-      id: '/favorites'
-      path: '/favorites'
-      fullPath: '/favorites'
-      preLoaderRoute: typeof FavoritesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -271,7 +251,6 @@ const ApiSessionsRouteWithChildren = ApiSessionsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  FavoritesRoute: FavoritesRoute,
   ApiChatRoute: ApiChatRoute,
   ApiConstraintsRoute: ApiConstraintsRoute,
   ApiPreferencesRoute: ApiPreferencesRoute,

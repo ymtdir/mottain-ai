@@ -1,5 +1,4 @@
 import { useState, useRef } from "react"
-import { useNavigate } from "@tanstack/react-router"
 import {
   Plus,
   Trash2,
@@ -95,6 +94,7 @@ type Props = {
   onAddTendency: (note: string) => void
   onRemoveTendency: (attribute: string) => void
   onRemoveRecipe: (recipeName: string) => void
+  onNavigateFavorites: () => void
 }
 
 export function SessionSidebar({
@@ -111,8 +111,8 @@ export function SessionSidebar({
   onAddTendency,
   onRemoveTendency,
   onRemoveRecipe,
+  onNavigateFavorites,
 }: Props) {
-  const navigate = useNavigate()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState("")
   const [deletingSession, setDeletingSession] = useState<ChatSession | null>(
@@ -254,7 +254,7 @@ export function SessionSidebar({
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
-                onClick={() => navigate({ to: "/favorites" })}
+                onClick={onNavigateFavorites}
                 tooltip="お気に入りレシピ"
               >
                 <Star size={17} />

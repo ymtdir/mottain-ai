@@ -126,12 +126,6 @@ export function SavedRecipeCard({ recipe, onRetry, onDelete }: Props) {
               </div>
             )}
 
-            {recipe.content.notes && (
-              <p className="rounded bg-amber-50 px-2 py-1 text-xs text-amber-700">
-                ⚠️ {recipe.content.notes}
-              </p>
-            )}
-
             <div className="flex justify-end border-t pt-3">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
