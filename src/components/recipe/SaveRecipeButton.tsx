@@ -30,7 +30,9 @@ export function SaveRecipeButton({ content, isSaved }: Props) {
         setSaved(true)
         // 登録後にイラスト生成を先行発火（fire-and-forget）。結果は保存レシピを
         // 開いたときにポーリングで反映される（ADR-13）
-        const savedResponseSchema = z.object({ id: z.string().uuid().optional() })
+        const savedResponseSchema = z.object({
+          id: z.string().uuid().optional(),
+        })
         const parsed = savedResponseSchema.safeParse(await res.json())
         if (parsed.success && parsed.data.id) {
           void fetch(`/api/recipes/${parsed.data.id}/illustration`, {
