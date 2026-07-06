@@ -245,6 +245,7 @@ function ChatPage() {
         onRemoveTendency={handleRemoveTendency}
         onRemoveRecipe={handleRemoveRecipe}
         savedRecipes={savedRecipes}
+        onRefreshSavedRecipes={loadSavedRecipes}
       />
       <SidebarInset className="flex h-svh flex-col">
         <MessageList

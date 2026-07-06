@@ -25,7 +25,17 @@ export function SaveRecipeButton({ content, isSaved }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content }),
       })
-      if (res.ok) setSaved(true)
+      if (res.ok) {
+        setSaved(true)
+        // 登録後にイラスト生成を先行発火（fire-and-forget）。結果は保存レシピを
+        // 開いたときにポーリングで反映される（ADR-13）
+        const created = (await res.json()) as { id?: string }
+        if (created.id) {
+          void fetch(`/api/recipes/${created.id}/illustration`, {
+            method: "POST",
+          }).catch(() => {})
+        }
+      }
     } finally {
       setLoading(false)
     }
