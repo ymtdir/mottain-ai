@@ -1,4 +1,5 @@
 import { useState, useRef } from "react"
+import { useNavigate } from "@tanstack/react-router"
 import {
   Plus,
   Trash2,
@@ -40,11 +41,9 @@ import {
 } from "@/components/ui/alert-dialog"
 import { ConstraintsPanel } from "@/components/settings/ConstraintsPanel"
 import { PreferencesView } from "@/components/settings/PreferencesView"
-import { SavedRecipesView } from "@/components/recipe/SavedRecipesView"
 import type { ChatSession } from "@/server/services/chat-session"
 import type { AvoidanceItem } from "@/server/services/avoidance-guard"
 import type { PreferenceMemory } from "@/server/services/preference"
-import type { SavedRecipeListItem } from "@/server/services/saved-recipe"
 
 function ExpandedToggle() {
   const { toggleSidebar } = useSidebar()
@@ -96,9 +95,6 @@ type Props = {
   onAddTendency: (note: string) => void
   onRemoveTendency: (attribute: string) => void
   onRemoveRecipe: (recipeName: string) => void
-  savedRecipes: SavedRecipeListItem[]
-  onRefreshSavedRecipes: () => void
-  onDeleteSavedRecipe: (id: string) => void
 }
 
 export function SessionSidebar({
@@ -115,10 +111,8 @@ export function SessionSidebar({
   onAddTendency,
   onRemoveTendency,
   onRemoveRecipe,
-  savedRecipes,
-  onRefreshSavedRecipes,
-  onDeleteSavedRecipe,
 }: Props) {
+  const navigate = useNavigate()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState("")
   const [deletingSession, setDeletingSession] = useState<ChatSession | null>(
@@ -129,7 +123,6 @@ export function SessionSidebar({
   if (deletingSession) deletingSessionRef.current = deletingSession
   const [constraintsOpen, setConstraintsOpen] = useState(false)
   const [prefsOpen, setPrefsOpen] = useState(false)
-  const [savedRecipesOpen, setSavedRecipesOpen] = useState(false)
   const isComposing = useRef(false)
 
   function startEdit(s: ChatSession) {
@@ -261,7 +254,7 @@ export function SessionSidebar({
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
-                onClick={() => setSavedRecipesOpen(true)}
+                onClick={() => navigate({ to: "/favorites" })}
                 tooltip="お気に入りレシピ"
               >
                 <Star size={17} />
@@ -289,22 +282,6 @@ export function SessionSidebar({
           </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
-
-      {/* お気に入りレシピダイアログ */}
-      <Dialog open={savedRecipesOpen} onOpenChange={setSavedRecipesOpen}>
-        <DialogContent className="flex h-[90vh] w-[90vw] max-w-5xl flex-col">
-          <DialogHeader>
-            <DialogTitle>お気に入りレシピ</DialogTitle>
-          </DialogHeader>
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            <SavedRecipesView
-              recipes={savedRecipes}
-              onRefresh={onRefreshSavedRecipes}
-              onDeleteRecipe={onDeleteSavedRecipe}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* 好みダイアログ */}
       <Dialog open={prefsOpen} onOpenChange={setPrefsOpen}>
