@@ -12,6 +12,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Card, CardContent } from "@/components/ui/card"
 
 type Props = {
@@ -46,7 +52,6 @@ function IllustrationArea({
       </div>
     )
   }
-  // failed
   return (
     <div className="flex h-32 w-full flex-col items-center justify-center gap-1.5 bg-muted">
       <div className="flex items-center text-muted-foreground">
@@ -68,27 +73,34 @@ function IllustrationArea({
 }
 
 export function SavedRecipeCard({ recipe, onRetry, onDelete }: Props) {
-  const [expanded, setExpanded] = useState(false)
+  const [open, setOpen] = useState(false)
 
   return (
-    <Card
-      size="sm"
-      className="cursor-pointer text-sm"
-      onClick={() => setExpanded((v) => !v)}
-    >
-      <IllustrationArea
-        status={recipe.illustrationStatus}
-        id={recipe.id}
-        onRetry={onRetry}
-      />
+    <>
+      <Card
+        size="sm"
+        className="cursor-pointer text-sm transition-shadow hover:shadow-lg"
+        onClick={() => setOpen(true)}
+      >
+        <IllustrationArea
+          status={recipe.illustrationStatus}
+          id={recipe.id}
+          onRetry={onRetry}
+        />
+        <CardContent className="pt-2">
+          <p className="leading-snug font-medium">{recipe.content.title}</p>
+        </CardContent>
+      </Card>
 
-      <CardContent className="pt-2">
-        <p className="leading-snug font-medium">{recipe.content.title}</p>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{recipe.content.title}</DialogTitle>
+          </DialogHeader>
 
-        {expanded && (
-          <div className="mt-3 flex flex-col gap-2">
+          <div className="flex flex-col gap-3 text-sm">
             {recipe.content.ingredients.length > 0 && (
-              <div className="text-xs">
+              <div>
                 <p className="font-medium text-foreground">【材料】</p>
                 <ul className="mt-1 space-y-0.5 text-muted-foreground">
                   {recipe.content.ingredients.map((ing) => (
@@ -102,7 +114,7 @@ export function SavedRecipeCard({ recipe, onRetry, onDelete }: Props) {
             )}
 
             {recipe.content.steps.length > 0 && (
-              <div className="text-xs">
+              <div>
                 <p className="font-medium text-foreground">【作り方】</p>
                 <ol className="mt-1 space-y-0.5 text-muted-foreground">
                   {recipe.content.steps.map((step, i) => (
@@ -120,14 +132,10 @@ export function SavedRecipeCard({ recipe, onRetry, onDelete }: Props) {
               </p>
             )}
 
-            <div className="flex justify-end pt-1">
+            <div className="flex justify-end border-t pt-3">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <button
-                    aria-label="削除"
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex items-center gap-1 rounded px-2 py-1 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                  >
+                  <button className="flex items-center gap-1 rounded px-2 py-1 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
                     <Trash2 size={13} />
                     削除
                   </button>
@@ -143,7 +151,10 @@ export function SavedRecipeCard({ recipe, onRetry, onDelete }: Props) {
                   <AlertDialogFooter>
                     <AlertDialogCancel>キャンセル</AlertDialogCancel>
                     <AlertDialogAction
-                      onClick={onDelete}
+                      onClick={() => {
+                        onDelete()
+                        setOpen(false)
+                      }}
                       className="text-destructive-foreground bg-destructive hover:bg-destructive/90"
                     >
                       削除
@@ -153,8 +164,8 @@ export function SavedRecipeCard({ recipe, onRetry, onDelete }: Props) {
               </AlertDialog>
             </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
