@@ -6,7 +6,7 @@ import type { SavedRecipeContent } from "@/server/services/saved-recipe"
 type Props = {
   content: SavedRecipeContent
   isSaved: boolean
-  onSave?: () => void
+  onSave?: (title: string) => void
 }
 
 export function SaveRecipeButton({ content, isSaved, onSave }: Props) {
@@ -29,7 +29,7 @@ export function SaveRecipeButton({ content, isSaved, onSave }: Props) {
       })
       if (res.ok) {
         setSaved(true)
-        onSave?.()
+        onSave?.(content.title)
         // 登録後にイラスト生成を先行発火（fire-and-forget）。結果は保存レシピを
         // 開いたときにポーリングで反映される（ADR-13）
         const savedResponseSchema = z.object({

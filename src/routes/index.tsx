@@ -24,6 +24,9 @@ function ChatPage() {
     recipeAdjustments: [],
   })
   const [savedRecipes, setSavedRecipes] = useState<SavedRecipeListItem[]>([])
+  const [pendingSavedTitles, setPendingSavedTitles] = useState<Set<string>>(
+    new Set()
+  )
   const [input, setInput] = useState("")
   const pendingSave = useRef(false)
   const loadingSessionId = useRef<string | null>(null)
@@ -219,8 +222,12 @@ function ChatPage() {
   }, [])
 
   const savedTitles = useMemo(
-    () => new Set(savedRecipes.map((r) => r.normalizedTitle)),
-    [savedRecipes]
+    () =>
+      new Set([
+        ...savedRecipes.map((r) => r.normalizedTitle),
+        ...pendingSavedTitles,
+      ]),
+    [savedRecipes, pendingSavedTitles]
   )
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -270,7 +277,11 @@ function ChatPage() {
           messages={messages}
           status={status}
           savedTitles={savedTitles}
-          onSaveRecipe={loadSavedRecipes}
+          onSaveRecipe={(title: string) => {
+            const normalized = title.trim().replace(/\s+/g, " ")
+            setPendingSavedTitles((prev) => new Set([...prev, normalized]))
+            loadSavedRecipes()
+          }}
         />
         <ChatInput
           input={input}

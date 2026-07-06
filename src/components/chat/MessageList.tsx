@@ -12,7 +12,7 @@ type Props = {
   messages: UIMessage[]
   status: ChatStatus
   savedTitles?: Set<string>
-  onSaveRecipe?: () => void
+  onSaveRecipe?: (title: string) => void
 }
 
 /** generateMealPlan ツールの出力構造 */

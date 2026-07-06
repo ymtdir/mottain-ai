@@ -4,7 +4,7 @@ import { SaveRecipeButton } from "@/components/recipe/SaveRecipeButton"
 type Props = {
   mealPlan: MealPlan
   savedTitles?: Set<string>
-  onSaveRecipe?: () => void
+  onSaveRecipe?: (title: string) => void
 }
 
 const normalize = (s: string) => s.trim().replace(/\s+/g, " ")
