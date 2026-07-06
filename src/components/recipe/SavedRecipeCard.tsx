@@ -1,17 +1,26 @@
 import { useState } from "react"
-import { ChevronDown, ChevronUp, ImageOff, Loader2 } from "lucide-react"
+import {
+  ChevronDown,
+  ChevronUp,
+  ImageOff,
+  Loader2,
+  RotateCw,
+} from "lucide-react"
 import type { SavedRecipeListItem } from "@/server/services/saved-recipe"
 
 type Props = {
   recipe: SavedRecipeListItem
+  onRetry: () => void
 }
 
 function IllustrationArea({
   status,
   id,
+  onRetry,
 }: {
   status: SavedRecipeListItem["illustrationStatus"]
   id: string
+  onRetry: () => void
 }) {
   if (status === "ready") {
     return (
@@ -30,20 +39,34 @@ function IllustrationArea({
       </div>
     )
   }
+  // failed
   return (
-    <div className="flex h-28 w-full items-center justify-center rounded-md bg-muted">
-      <ImageOff size={20} className="text-muted-foreground" />
-      <span className="ml-2 text-xs text-muted-foreground">イラストなし</span>
+    <div className="flex h-28 w-full flex-col items-center justify-center gap-1.5 rounded-md bg-muted">
+      <div className="flex items-center text-muted-foreground">
+        <ImageOff size={20} />
+        <span className="ml-2 text-xs">生成に失敗しました</span>
+      </div>
+      <button
+        onClick={onRetry}
+        className="flex items-center gap-1 rounded border bg-background px-2 py-0.5 text-xs text-foreground hover:bg-muted"
+      >
+        <RotateCw size={12} />
+        再試行
+      </button>
     </div>
   )
 }
 
-export function SavedRecipeCard({ recipe }: Props) {
+export function SavedRecipeCard({ recipe, onRetry }: Props) {
   const [expanded, setExpanded] = useState(false)
 
   return (
     <div className="rounded-lg border bg-card p-3 text-sm">
-      <IllustrationArea status={recipe.illustrationStatus} id={recipe.id} />
+      <IllustrationArea
+        status={recipe.illustrationStatus}
+        id={recipe.id}
+        onRetry={onRetry}
+      />
 
       <button
         onClick={() => setExpanded((v) => !v)}

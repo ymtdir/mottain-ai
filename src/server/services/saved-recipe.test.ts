@@ -1,6 +1,13 @@
 import { describe, it, expect } from "vitest"
 import type { SavedRecipeContent } from "./saved-recipe"
-import { normalizeTitle, validateContent, toListItem } from "./saved-recipe"
+import {
+  normalizeTitle,
+  validateContent,
+  toListItem,
+  isStaleGenerating,
+  shouldStartIllustration,
+  ILLUSTRATION_LEASE_MS,
+} from "./saved-recipe"
 
 // INV-1: 重複登録が二重に増えない（normalizedTitle による判定）
 describe("normalizeTitle", () => {
@@ -97,5 +104,53 @@ describe("toListItem", () => {
     const item = toListItem(row)
     expect(item.illustrationStatus).toBe("ready")
     expect(item.illustrationMime).toBe("image/png")
+  })
+})
+
+// INV-3: 生成状況の状態遷移（stale 再キック・冪等）
+describe("isStaleGenerating", () => {
+  const now = new Date("2026-07-06T12:00:00Z")
+
+  it("generating がリース期限を超えたら stale と判定する", () => {
+    const updatedAt = new Date(now.getTime() - ILLUSTRATION_LEASE_MS - 1000)
+    expect(isStaleGenerating("generating", updatedAt, now)).toBe(true)
+  })
+
+  it("generating がリース期限内なら stale ではない", () => {
+    const updatedAt = new Date(now.getTime() - 1000)
+    expect(isStaleGenerating("generating", updatedAt, now)).toBe(false)
+  })
+
+  it("generating 以外の status は stale ではない", () => {
+    const old = new Date(now.getTime() - ILLUSTRATION_LEASE_MS - 1000)
+    expect(isStaleGenerating("pending", old, now)).toBe(false)
+    expect(isStaleGenerating("ready", old, now)).toBe(false)
+    expect(isStaleGenerating("failed", old, now)).toBe(false)
+  })
+})
+
+describe("shouldStartIllustration", () => {
+  const now = new Date("2026-07-06T12:00:00Z")
+  const fresh = new Date(now.getTime() - 1000)
+  const stale = new Date(now.getTime() - ILLUSTRATION_LEASE_MS - 1000)
+
+  it("pending は生成を開始する", () => {
+    expect(shouldStartIllustration("pending", fresh, now)).toBe(true)
+  })
+
+  it("failed は再試行で生成を開始する（FR-015）", () => {
+    expect(shouldStartIllustration("failed", fresh, now)).toBe(true)
+  })
+
+  it("非 stale の generating は再キックしない（冪等・二重生成防止）", () => {
+    expect(shouldStartIllustration("generating", fresh, now)).toBe(false)
+  })
+
+  it("stale な generating は再キックする（クラッシュ復旧）", () => {
+    expect(shouldStartIllustration("generating", stale, now)).toBe(true)
+  })
+
+  it("ready は何もしない", () => {
+    expect(shouldStartIllustration("ready", fresh, now)).toBe(false)
   })
 })
