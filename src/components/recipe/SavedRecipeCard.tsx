@@ -76,16 +76,11 @@ export function SavedRecipeCard({ recipe, onRetry, onDelete }: Props) {
           className="flex min-w-0 flex-1 items-center justify-between gap-2 text-left"
           aria-expanded={expanded}
         >
-          <span className="truncate font-medium">
-            {recipe.content.title}
-          </span>
+          <span className="truncate font-medium">{recipe.content.title}</span>
           {expanded ? (
             <ChevronUp size={15} className="shrink-0 text-muted-foreground" />
           ) : (
-            <ChevronDown
-              size={15}
-              className="shrink-0 text-muted-foreground"
-            />
+            <ChevronDown size={15} className="shrink-0 text-muted-foreground" />
           )}
         </button>
         <button
