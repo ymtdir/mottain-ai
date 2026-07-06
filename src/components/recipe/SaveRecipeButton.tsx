@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Heart } from "lucide-react"
 import type { SavedRecipeContent } from "@/server/services/saved-recipe"
 
@@ -7,20 +7,25 @@ type Props = {
   isSaved: boolean
 }
 
-export function SaveRecipeButton({ content, isSaved: initialSaved }: Props) {
-  const [saved, setSaved] = useState(initialSaved)
+export function SaveRecipeButton({ content, isSaved }: Props) {
+  const [saved, setSaved] = useState(isSaved)
   const [loading, setLoading] = useState(false)
+
+  // savedRecipes がページロード後に届いたとき（race condition）に同期する
+  useEffect(() => {
+    if (isSaved) setSaved(true)
+  }, [isSaved])
 
   async function handleClick() {
     if (saved || loading) return
     setLoading(true)
     try {
-      await fetch("/api/recipes", {
+      const res = await fetch("/api/recipes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content }),
       })
-      setSaved(true)
+      if (res.ok) setSaved(true)
     } finally {
       setLoading(false)
     }
