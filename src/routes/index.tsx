@@ -66,6 +66,11 @@ function ChatPage() {
       .catch(() => {})
   }, [])
 
+  const handleDeleteSavedRecipe = useCallback(async (id: string) => {
+    await fetch(`/api/recipes/${id}`, { method: "DELETE" }).catch(() => {})
+    setSavedRecipes((prev) => prev.filter((r) => r.id !== id))
+  }, [])
+
   useEffect(() => {
     loadSavedRecipes()
   }, [loadSavedRecipes])
@@ -246,6 +251,7 @@ function ChatPage() {
         onRemoveRecipe={handleRemoveRecipe}
         savedRecipes={savedRecipes}
         onRefreshSavedRecipes={loadSavedRecipes}
+        onDeleteSavedRecipe={handleDeleteSavedRecipe}
       />
       <SidebarInset className="flex h-svh flex-col">
         <MessageList

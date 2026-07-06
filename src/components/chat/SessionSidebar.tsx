@@ -98,6 +98,7 @@ type Props = {
   onRemoveRecipe: (recipeName: string) => void
   savedRecipes: SavedRecipeListItem[]
   onRefreshSavedRecipes: () => void
+  onDeleteSavedRecipe: (id: string) => void
 }
 
 export function SessionSidebar({
@@ -116,6 +117,7 @@ export function SessionSidebar({
   onRemoveRecipe,
   savedRecipes,
   onRefreshSavedRecipes,
+  onDeleteSavedRecipe,
 }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState("")
@@ -297,6 +299,7 @@ export function SessionSidebar({
           <SavedRecipesView
             recipes={savedRecipes}
             onRefresh={onRefreshSavedRecipes}
+            onDeleteRecipe={onDeleteSavedRecipe}
           />
         </DialogContent>
       </Dialog>

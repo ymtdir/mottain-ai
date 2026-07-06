@@ -6,9 +6,14 @@ import type { SavedRecipeListItem } from "@/server/services/saved-recipe"
 type Props = {
   recipes: SavedRecipeListItem[]
   onRefresh: () => void
+  onDeleteRecipe: (id: string) => void
 }
 
-export function SavedRecipesView({ recipes, onRefresh }: Props) {
+export function SavedRecipesView({
+  recipes,
+  onRefresh,
+  onDeleteRecipe,
+}: Props) {
   // 表示中は未完了レシピの生成を保証しつつ、状況が変わるまで軽くポーリングする（R1/R4）
   const firedRef = useRef<Set<string>>(new Set())
 
@@ -62,6 +67,7 @@ export function SavedRecipesView({ recipes, onRefresh }: Props) {
           key={recipe.id}
           recipe={recipe}
           onRetry={() => fireIllustration(recipe.id)}
+          onDelete={() => onDeleteRecipe(recipe.id)}
         />
       ))}
     </div>
