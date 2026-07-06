@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useChat } from "@ai-sdk/react"
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import type { FormEvent } from "react"
 import type { UIMessage } from "ai"
 import { ChatInput } from "@/components/chat/ChatInput"
@@ -10,6 +10,7 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import type { ChatSession } from "@/server/services/chat-session"
 import type { AvoidanceItem } from "@/server/services/avoidance-guard"
 import type { PreferenceMemory } from "@/server/services/preference"
+import type { SavedRecipeListItem } from "@/server/services/saved-recipe"
 
 export const Route = createFileRoute("/")({ component: ChatPage })
 
@@ -21,6 +22,7 @@ function ChatPage() {
     globalTendencies: [],
     recipeAdjustments: [],
   })
+  const [savedRecipes, setSavedRecipes] = useState<SavedRecipeListItem[]>([])
   const [input, setInput] = useState("")
   const pendingSave = useRef(false)
   const loadingSessionId = useRef<string | null>(null)
@@ -56,6 +58,17 @@ function ChatPage() {
       .then(setConstraints)
       .catch(() => {})
   }, [])
+
+  const loadSavedRecipes = useCallback(() => {
+    fetch("/api/recipes")
+      .then((r) => r.json())
+      .then((data: SavedRecipeListItem[]) => setSavedRecipes(data))
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    loadSavedRecipes()
+  }, [loadSavedRecipes])
 
   useEffect(() => {
     loadPreferences()
@@ -188,6 +201,11 @@ function ChatPage() {
     }))
   }, [])
 
+  const savedTitles = useMemo(
+    () => new Set(savedRecipes.map((r) => r.normalizedTitle)),
+    [savedRecipes]
+  )
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!input.trim() || isLoading) return
@@ -226,9 +244,14 @@ function ChatPage() {
         onAddTendency={handleAddTendency}
         onRemoveTendency={handleRemoveTendency}
         onRemoveRecipe={handleRemoveRecipe}
+        savedRecipes={savedRecipes}
       />
       <SidebarInset className="flex h-svh flex-col">
-        <MessageList messages={messages} status={status} />
+        <MessageList
+          messages={messages}
+          status={status}
+          savedTitles={savedTitles}
+        />
         <ChatInput
           input={input}
           isLoading={isLoading}
