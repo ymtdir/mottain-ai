@@ -21,6 +21,7 @@ export async function generateIllustration(
     prompt: buildIllustrationPrompt(content),
     n: 1,
     aspectRatio: "4:3",
+    abortSignal: AbortSignal.timeout(90_000),
   })
   return {
     data: Buffer.from(image.uint8Array),

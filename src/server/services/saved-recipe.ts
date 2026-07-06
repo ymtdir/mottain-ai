@@ -193,7 +193,7 @@ export async function ensureIllustration(id: string): Promise<void> {
         illustrationError: null,
         updatedAt: new Date(),
       })
-      .where(eq(savedRecipes.id, id))
+      .where(and(eq(savedRecipes.id, id), eq(savedRecipes.updatedAt, now)))
   } catch (e) {
     const msg = e instanceof Error ? e.message : "イラスト生成に失敗しました"
     await db
@@ -203,7 +203,7 @@ export async function ensureIllustration(id: string): Promise<void> {
         illustrationError: msg,
         updatedAt: new Date(),
       })
-      .where(eq(savedRecipes.id, id))
+      .where(and(eq(savedRecipes.id, id), eq(savedRecipes.updatedAt, now)))
   }
 }
 
