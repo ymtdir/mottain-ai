@@ -1,12 +1,5 @@
 import { useState } from "react"
-import {
-  ChevronDown,
-  ChevronUp,
-  ImageOff,
-  Loader2,
-  RotateCw,
-  Trash2,
-} from "lucide-react"
+import { ImageOff, Loader2, RotateCw, Trash2 } from "lucide-react"
 import type { SavedRecipeListItem } from "@/server/services/saved-recipe"
 import {
   AlertDialog,
@@ -41,13 +34,13 @@ function IllustrationArea({
       <img
         src={`/api/recipes/${id}/illustration`}
         alt="料理のイラスト"
-        className="h-28 w-full object-cover"
+        className="h-32 w-full object-cover"
       />
     )
   }
   if (status === "pending" || status === "generating") {
     return (
-      <div className="flex h-28 w-full items-center justify-center bg-muted">
+      <div className="flex h-32 w-full items-center justify-center bg-muted">
         <Loader2 size={20} className="animate-spin text-muted-foreground" />
         <span className="ml-2 text-xs text-muted-foreground">生成中...</span>
       </div>
@@ -55,13 +48,16 @@ function IllustrationArea({
   }
   // failed
   return (
-    <div className="flex h-28 w-full flex-col items-center justify-center gap-1.5 bg-muted">
+    <div className="flex h-32 w-full flex-col items-center justify-center gap-1.5 bg-muted">
       <div className="flex items-center text-muted-foreground">
         <ImageOff size={20} />
         <span className="ml-2 text-xs">生成に失敗しました</span>
       </div>
       <button
-        onClick={onRetry}
+        onClick={(e) => {
+          e.stopPropagation()
+          onRetry()
+        }}
         className="flex items-center gap-1 rounded border bg-background px-2 py-0.5 text-xs text-foreground hover:bg-muted"
       >
         <RotateCw size={12} />
@@ -75,7 +71,11 @@ export function SavedRecipeCard({ recipe, onRetry, onDelete }: Props) {
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <Card size="sm" className="text-sm">
+    <Card
+      size="sm"
+      className="cursor-pointer text-sm"
+      onClick={() => setExpanded((v) => !v)}
+    >
       <IllustrationArea
         status={recipe.illustrationStatus}
         id={recipe.id}
@@ -83,54 +83,10 @@ export function SavedRecipeCard({ recipe, onRetry, onDelete }: Props) {
       />
 
       <CardContent className="pt-2">
-        <div className="flex w-full items-center gap-1">
-          <button
-            onClick={() => setExpanded((v) => !v)}
-            className="flex min-w-0 flex-1 items-center justify-between gap-1 text-left"
-            aria-expanded={expanded}
-          >
-            <span className="truncate font-medium">{recipe.content.title}</span>
-            {expanded ? (
-              <ChevronUp size={14} className="shrink-0 text-muted-foreground" />
-            ) : (
-              <ChevronDown
-                size={14}
-                className="shrink-0 text-muted-foreground"
-              />
-            )}
-          </button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <button
-                aria-label="削除"
-                className="shrink-0 rounded p-0.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-              >
-                <Trash2 size={13} />
-              </button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>レシピを削除しますか？</AlertDialogTitle>
-                <AlertDialogDescription>
-                  「{recipe.content.title}
-                  」を削除します。この操作は取り消せません。
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={onDelete}
-                  className="text-destructive-foreground bg-destructive hover:bg-destructive/90"
-                >
-                  削除
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
+        <p className="leading-snug font-medium">{recipe.content.title}</p>
 
         {expanded && (
-          <div className="mt-2 flex flex-col gap-2">
+          <div className="mt-3 flex flex-col gap-2">
             {recipe.content.ingredients.length > 0 && (
               <div className="text-xs">
                 <p className="font-medium text-foreground">【材料】</p>
@@ -163,6 +119,39 @@ export function SavedRecipeCard({ recipe, onRetry, onDelete }: Props) {
                 ⚠️ {recipe.content.notes}
               </p>
             )}
+
+            <div className="flex justify-end pt-1">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <button
+                    aria-label="削除"
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center gap-1 rounded px-2 py-1 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <Trash2 size={13} />
+                    削除
+                  </button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>レシピを削除しますか？</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      「{recipe.content.title}
+                      」を削除します。この操作は取り消せません。
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={onDelete}
+                      className="text-destructive-foreground bg-destructive hover:bg-destructive/90"
+                    >
+                      削除
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </div>
         )}
       </CardContent>

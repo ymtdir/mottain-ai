@@ -10,7 +10,7 @@ import {
   PanelLeftOpen,
   SlidersHorizontal,
   HeartCrack,
-  BookMarked,
+  Star,
 } from "lucide-react"
 import {
   Sidebar,
@@ -262,10 +262,10 @@ export function SessionSidebar({
             <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={() => setSavedRecipesOpen(true)}
-                tooltip="保存レシピ"
+                tooltip="お気に入りレシピ"
               >
-                <BookMarked size={17} />
-                <span>保存レシピ</span>
+                <Star size={17} />
+                <span>お気に入りレシピ</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
@@ -290,17 +290,19 @@ export function SessionSidebar({
         </SidebarFooter>
       </Sidebar>
 
-      {/* 保存レシピダイアログ */}
+      {/* お気に入りレシピダイアログ */}
       <Dialog open={savedRecipesOpen} onOpenChange={setSavedRecipesOpen}>
-        <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
+        <DialogContent className="flex h-[90vh] w-[90vw] max-w-5xl flex-col">
           <DialogHeader>
-            <DialogTitle>保存レシピ</DialogTitle>
+            <DialogTitle>お気に入りレシピ</DialogTitle>
           </DialogHeader>
-          <SavedRecipesView
-            recipes={savedRecipes}
-            onRefresh={onRefreshSavedRecipes}
-            onDeleteRecipe={onDeleteSavedRecipe}
-          />
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <SavedRecipesView
+              recipes={savedRecipes}
+              onRefresh={onRefreshSavedRecipes}
+              onDeleteRecipe={onDeleteSavedRecipe}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 

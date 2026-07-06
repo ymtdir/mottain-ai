@@ -52,7 +52,7 @@ export function SavedRecipesView({
     return (
       <div className="flex flex-col items-center gap-2 py-8 text-center text-muted-foreground">
         <BookOpen size={32} strokeWidth={1.5} />
-        <p className="text-sm">保存したレシピはまだありません</p>
+        <p className="text-sm">お気に入りレシピはまだありません</p>
         <p className="text-xs">
           献立のレシピカードにある「保存」ボタンで登録できます
         </p>
