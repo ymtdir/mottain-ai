@@ -35,10 +35,18 @@ function ChatPage() {
       .catch(() => {})
   }, [])
 
+  const loadConstraints = useCallback(() => {
+    fetch("/api/constraints")
+      .then((r) => r.json())
+      .then(setConstraints)
+      .catch(() => {})
+  }, [])
+
   const { messages, setMessages, sendMessage, status } = useChat({
     onFinish: () => {
       pendingSave.current = true
       loadPreferences()
+      loadConstraints()
     },
   })
   const isLoading = status === "submitted" || status === "streaming"
@@ -54,11 +62,8 @@ function ChatPage() {
   }, [])
 
   useEffect(() => {
-    fetch("/api/constraints")
-      .then((r) => r.json())
-      .then(setConstraints)
-      .catch(() => {})
-  }, [])
+    loadConstraints()
+  }, [loadConstraints])
 
   const loadSavedRecipes = useCallback(() => {
     fetch("/api/recipes")
@@ -265,6 +270,7 @@ function ChatPage() {
           messages={messages}
           status={status}
           savedTitles={savedTitles}
+          onSaveRecipe={loadSavedRecipes}
         />
         <ChatInput
           input={input}

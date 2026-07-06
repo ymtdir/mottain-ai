@@ -4,11 +4,12 @@ import { SaveRecipeButton } from "@/components/recipe/SaveRecipeButton"
 type Props = {
   mealPlan: MealPlan
   savedTitles?: Set<string>
+  onSaveRecipe?: () => void
 }
 
 const normalize = (s: string) => s.trim().replace(/\s+/g, " ")
 
-export function MealPlanCard({ mealPlan, savedTitles }: Props) {
+export function MealPlanCard({ mealPlan, savedTitles, onSaveRecipe }: Props) {
   return (
     <div className="flex flex-col gap-3">
       <p className="text-sm font-medium">
@@ -35,6 +36,7 @@ export function MealPlanCard({ mealPlan, savedTitles }: Props) {
                   notes: meal.notes,
                 }}
                 isSaved={savedTitles?.has(normalize(meal.title)) ?? false}
+                onSave={onSaveRecipe}
               />
             </div>
 

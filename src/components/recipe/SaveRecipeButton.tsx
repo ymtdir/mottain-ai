@@ -6,9 +6,10 @@ import type { SavedRecipeContent } from "@/server/services/saved-recipe"
 type Props = {
   content: SavedRecipeContent
   isSaved: boolean
+  onSave?: () => void
 }
 
-export function SaveRecipeButton({ content, isSaved }: Props) {
+export function SaveRecipeButton({ content, isSaved, onSave }: Props) {
   const [saved, setSaved] = useState(isSaved)
   const [loading, setLoading] = useState(false)
 
@@ -28,6 +29,7 @@ export function SaveRecipeButton({ content, isSaved }: Props) {
       })
       if (res.ok) {
         setSaved(true)
+        onSave?.()
         // 登録後にイラスト生成を先行発火（fire-and-forget）。結果は保存レシピを
         // 開いたときにポーリングで反映される（ADR-13）
         const savedResponseSchema = z.object({
