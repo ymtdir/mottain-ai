@@ -8,6 +8,17 @@ import {
   Trash2,
 } from "lucide-react"
 import type { SavedRecipeListItem } from "@/server/services/saved-recipe"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 type Props = {
   recipe: SavedRecipeListItem
@@ -83,13 +94,34 @@ export function SavedRecipeCard({ recipe, onRetry, onDelete }: Props) {
             <ChevronDown size={15} className="shrink-0 text-muted-foreground" />
           )}
         </button>
-        <button
-          onClick={onDelete}
-          aria-label="削除"
-          className="shrink-0 rounded p-0.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-        >
-          <Trash2 size={14} />
-        </button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button
+              aria-label="削除"
+              className="shrink-0 rounded p-0.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+            >
+              <Trash2 size={14} />
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>レシピを削除しますか？</AlertDialogTitle>
+              <AlertDialogDescription>
+                「{recipe.content.title}
+                」を削除します。この操作は取り消せません。
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>キャンセル</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={onDelete}
+                className="text-destructive-foreground bg-destructive hover:bg-destructive/90"
+              >
+                削除
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       {expanded && (

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { z } from "zod"
 import { deleteRecipe } from "../../../server/services/saved-recipe"
 
-const uuidSchema = z.string().uuid()
+const uuidSchema = z.uuid()
 
 export const Route = createFileRoute("/api/recipes/$id")({
   server: {
