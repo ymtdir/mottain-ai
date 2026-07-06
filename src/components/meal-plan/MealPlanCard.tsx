@@ -1,10 +1,14 @@
 import type { MealPlan } from "@/server/services/meal-plan"
+import { SaveRecipeButton } from "@/components/recipe/SaveRecipeButton"
 
 type Props = {
   mealPlan: MealPlan
+  savedTitles?: Set<string>
 }
 
-export function MealPlanCard({ mealPlan }: Props) {
+const normalize = (s: string) => s.trim().replace(/\s+/g, " ")
+
+export function MealPlanCard({ mealPlan, savedTitles }: Props) {
   return (
     <div className="flex flex-col gap-3">
       <p className="text-sm font-medium">
@@ -16,11 +20,22 @@ export function MealPlanCard({ mealPlan }: Props) {
             key={meal.day}
             className="rounded-lg border bg-background p-3 text-sm"
           >
-            <div className="flex items-baseline gap-2">
-              <span className="text-xs text-muted-foreground">
-                {meal.day} 日目
-              </span>
-              <span className="font-medium">{meal.title}</span>
+            <div className="flex items-baseline justify-between gap-2">
+              <div className="flex items-baseline gap-2">
+                <span className="text-xs text-muted-foreground">
+                  {meal.day} 日目
+                </span>
+                <span className="font-medium">{meal.title}</span>
+              </div>
+              <SaveRecipeButton
+                content={{
+                  title: meal.title,
+                  ingredients: meal.ingredients,
+                  steps: meal.steps,
+                  notes: meal.notes,
+                }}
+                isSaved={savedTitles?.has(normalize(meal.title)) ?? false}
+              />
             </div>
 
             {meal.ingredients.length > 0 && (
