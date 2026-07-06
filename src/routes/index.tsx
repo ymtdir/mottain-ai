@@ -67,8 +67,12 @@ function ChatPage() {
   }, [])
 
   const handleDeleteSavedRecipe = useCallback(async (id: string) => {
-    await fetch(`/api/recipes/${id}`, { method: "DELETE" }).catch(() => {})
-    setSavedRecipes((prev) => prev.filter((r) => r.id !== id))
+    const res = await fetch(`/api/recipes/${id}`, { method: "DELETE" }).catch(
+      () => null
+    )
+    if (res?.ok) {
+      setSavedRecipes((prev) => prev.filter((r) => r.id !== id))
+    }
   }, [])
 
   useEffect(() => {
