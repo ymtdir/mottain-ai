@@ -1,10 +1,6 @@
 import { describe, it, expect } from "vitest"
-import {
-  normalizeTitle,
-  validateContent,
-  toListItem,
-  type SavedRecipeContent,
-} from "./saved-recipe"
+import type { SavedRecipeContent } from "./saved-recipe"
+import { normalizeTitle, validateContent, toListItem } from "./saved-recipe"
 
 // INV-1: 重複登録が二重に増えない（normalizedTitle による判定）
 describe("normalizeTitle", () => {

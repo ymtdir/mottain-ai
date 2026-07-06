@@ -44,8 +44,7 @@ export function toListItem(row: SavedRecipeRow): SavedRecipeListItem {
     id: row.id,
     normalizedTitle: row.normalizedTitle,
     content: row.content as SavedRecipeContent,
-    illustrationStatus: (row.illustrationStatus ??
-      "pending") as IllustrationStatus,
+    illustrationStatus: row.illustrationStatus as IllustrationStatus,
     illustrationMime: row.illustrationMime,
     illustrationError: row.illustrationError,
     createdAt: row.createdAt,
@@ -72,8 +71,7 @@ export async function listSavedRecipes(): Promise<SavedRecipeListItem[]> {
   return rows.map((row) => ({
     ...row,
     content: row.content as SavedRecipeContent,
-    illustrationStatus: (row.illustrationStatus ??
-      "pending") as IllustrationStatus,
+    illustrationStatus: row.illustrationStatus as IllustrationStatus,
   }))
 }
 
@@ -86,7 +84,7 @@ export async function registerRecipe(
   await ensureUser()
   const normTitle = normalizeTitle(content.title)
 
-  const [inserted] = await db
+  const insertResult = await db
     .insert(savedRecipes)
     .values({
       userId: FIXED_USER_ID,
@@ -97,7 +95,7 @@ export async function registerRecipe(
     .onConflictDoNothing()
     .returning()
 
-  if (inserted) return toListItem(inserted)
+  if (insertResult.length > 0) return toListItem(insertResult[0])
 
   const existing = await db
     .select()
