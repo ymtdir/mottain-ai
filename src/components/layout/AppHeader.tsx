@@ -24,18 +24,27 @@ export function AppHeader({
   }
 
   return (
-    <header className="sticky top-0 z-10 flex h-14 items-center border-b bg-background/95 px-4 backdrop-blur">
+    <header className="sticky top-0 z-10 flex h-14 items-center justify-center border-b bg-background/95 px-4 backdrop-blur">
       <Tabs value={current} onValueChange={handleChange}>
         <TabsList>
-          <TabsTrigger value="chat">
+          <TabsTrigger
+            value="chat"
+            className="data-[state=active]:bg-sidebar-accent data-[state=active]:text-sidebar-accent-foreground"
+          >
             <MessageCircle />
             チャット
           </TabsTrigger>
-          <TabsTrigger value="calendar">
+          <TabsTrigger
+            value="calendar"
+            className="data-[state=active]:bg-sidebar-accent data-[state=active]:text-sidebar-accent-foreground"
+          >
             <CalendarDays />
             カレンダー
           </TabsTrigger>
-          <TabsTrigger value="favorites">
+          <TabsTrigger
+            value="favorites"
+            className="data-[state=active]:bg-sidebar-accent data-[state=active]:text-sidebar-accent-foreground"
+          >
             <Star />
             お気に入り
           </TabsTrigger>
