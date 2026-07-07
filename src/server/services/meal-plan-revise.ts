@@ -67,6 +67,7 @@ function buildRevisionPrompt(
     "## 制約",
     `- 変更対象（${targetDaysText}）のみ新しいレシピを考える。それ以外の日は変えない。`,
     "- 手持ち食材を優先して使う。",
+    "- title（料理名）は純粋な料理名のみとする。「○日目」「（残り）」などの補足表記を title に含めないこと。",
     "",
     "## 手持ち食材",
     inventoryText,

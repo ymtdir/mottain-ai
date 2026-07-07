@@ -23,5 +23,5 @@ function getVertex(): GoogleVertexProvider {
 }
 
 export function imagen(): ImageModel {
-  return getVertex().image("imagen-4.0-generate-001")
+  return getVertex().image("imagen-3.0-generate-001")
 }
