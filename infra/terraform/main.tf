@@ -151,7 +151,10 @@ resource "google_sql_database_instance" "postgres" {
   deletion_protection = false
 
   settings {
-    tier = var.db_tier
+    # db-f1-micro などの共有コアは ENTERPRISE エディションのみ対応
+    # （デフォルトの ENTERPRISE_PLUS では使えない）
+    edition = "ENTERPRISE"
+    tier    = var.db_tier
   }
 
   depends_on = [google_project_service.services]
