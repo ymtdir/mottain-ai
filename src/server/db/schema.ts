@@ -4,6 +4,7 @@ import {
   jsonb,
   timestamp,
   text,
+  date,
   index,
   uniqueIndex,
   customType,
@@ -102,6 +103,30 @@ export const savedRecipes = pgTable(
     ),
     index("saved_recipes_user_id_idx").on(t.userId),
   ]
+)
+
+export type MealLogContent = {
+  title: string
+  ingredients: { name: string; amount: string | null }[]
+  steps: string[]
+  notes: string | null
+}
+
+// 食事記録（承認された献立を承認日起点の連続日にスナップショット保持）
+export const mealLogs = pgTable(
+  "meal_logs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    eatenOn: date("eaten_on").notNull(),
+    content: jsonb("content").$type<MealLogContent>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("meal_logs_user_eaten_on_idx").on(t.userId, t.eatenOn)]
 )
 
 // 好みメモリ（ソフト）。全体傾向 + レシピ固有調整を JSONB で保持し、提案時にコンテキスト注入する
