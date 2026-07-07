@@ -15,7 +15,7 @@ export type RevisionRequest = {
 
 const replacementRecipeSchema = z.object({
   day: z.number().describe("何日目か（変更対象の日番号をそのまま使う）"),
-  title: z.string().describe("料理名"),
+  title: z.string().describe("料理名。「○日目」などの日付表記を含めないこと"),
   ingredients: z
     .array(
       z.object({
