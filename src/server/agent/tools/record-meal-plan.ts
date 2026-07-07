@@ -2,6 +2,7 @@ import { tool } from "ai"
 import { z } from "zod"
 import { recordMeals } from "../../services/meal-log"
 import type { MealLogContent } from "../../services/meal-log"
+import { todayInTokyo } from "../../../lib/date"
 
 const mealSchema = z.object({
   day: z.number().int().min(1).describe("何日目か（1 始まり）"),
@@ -30,9 +31,7 @@ export const recordMealPlanTool = tool({
     "ユーザーが提案された献立を承認したときに、各料理を食事カレンダーに記録する（meal_logs への INSERT）。承認をはっきり検知したときのみ呼ぶ。提案中・修正中・曖昧な会話では呼ばない。承認日を起点に連続日で記録される。",
   inputSchema,
   execute: async ({ meals }) => {
-    const approvalDate = new Date(
-      new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" })
-    )
+    const approvalDate = todayInTokyo()
     const contents: { day: number; content: MealLogContent }[] = meals.map(
       (m) => ({
         day: m.day,
