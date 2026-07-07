@@ -11,8 +11,6 @@ type ChatStatus = "submitted" | "streaming" | "ready" | "error"
 type Props = {
   messages: UIMessage[]
   status: ChatStatus
-  savedTitles?: Set<string>
-  onSaveRecipe?: (title: string) => void
 }
 
 /** generateMealPlan ツールの出力構造 */
@@ -74,12 +72,7 @@ function ThinkingBubble({ label }: { label: string }) {
   )
 }
 
-export function MessageList({
-  messages,
-  status,
-  savedTitles,
-  onSaveRecipe,
-}: Props) {
+export function MessageList({ messages, status }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -137,11 +130,7 @@ export function MessageList({
                         ⚠️ {output.violationNote}
                       </p>
                     )}
-                    <MealPlanCard
-                      mealPlan={output.mealPlan}
-                      savedTitles={savedTitles}
-                      onSaveRecipe={onSaveRecipe}
-                    />
+                    <MealPlanCard mealPlan={output.mealPlan} />
                     <ShoppingListCard shoppingList={output.shoppingList} />
                   </div>
                 )
@@ -160,11 +149,7 @@ export function MessageList({
                         ⚠️ {output.violationNote}
                       </p>
                     )}
-                    <MealPlanCard
-                      mealPlan={output.updatedMealPlan}
-                      savedTitles={savedTitles}
-                      onSaveRecipe={onSaveRecipe}
-                    />
+                    <MealPlanCard mealPlan={output.updatedMealPlan} />
                     <ShoppingListCard
                       shoppingList={output.updatedShoppingList}
                     />

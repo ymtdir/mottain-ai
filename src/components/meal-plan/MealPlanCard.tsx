@@ -1,10 +1,7 @@
 import type { MealPlan, Recipe } from "@/server/services/meal-plan"
-import { SaveRecipeButton } from "@/components/recipe/SaveRecipeButton"
 
 type Props = {
   mealPlan: MealPlan
-  savedTitles?: Set<string>
-  onSaveRecipe?: (title: string) => void
 }
 
 const normalize = (s: string) => s.trim().replace(/\s+/g, " ")
@@ -21,7 +18,6 @@ type MealGroup = {
 /**
  * 同じ料理名の日を1グループにまとめる。まとめ調理（カレー等）の残り日は
  * 材料・手順が空なので、材料・手順を持つ「調理日」を代表として採用する。
- * これにより残り日の保存で材料なしレシピが登録されるのを防ぐ。
  */
 function groupMealsByTitle(meals: Recipe[]): MealGroup[] {
   const byTitle = new Map<string, MealGroup>()
@@ -56,7 +52,7 @@ function groupMealsByTitle(meals: Recipe[]): MealGroup[] {
   return groups
 }
 
-export function MealPlanCard({ mealPlan, savedTitles, onSaveRecipe }: Props) {
+export function MealPlanCard({ mealPlan }: Props) {
   const groups = groupMealsByTitle(mealPlan.meals)
 
   return (
@@ -70,23 +66,11 @@ export function MealPlanCard({ mealPlan, savedTitles, onSaveRecipe }: Props) {
             key={group.days.join("-")}
             className="rounded-lg border bg-background p-3 text-sm"
           >
-            <div className="flex items-baseline justify-between gap-2">
-              <div className="flex items-baseline gap-2">
-                <span className="text-xs text-muted-foreground">
-                  {group.days.join("・")} 日目
-                </span>
-                <span className="font-medium">{group.title}</span>
-              </div>
-              <SaveRecipeButton
-                content={{
-                  title: group.title,
-                  ingredients: group.ingredients,
-                  steps: group.steps,
-                  notes: group.notes,
-                }}
-                isSaved={savedTitles?.has(normalize(group.title)) ?? false}
-                onSave={onSaveRecipe}
-              />
+            <div className="flex items-baseline gap-2">
+              <span className="text-xs text-muted-foreground">
+                {group.days.join("・")} 日目
+              </span>
+              <span className="font-medium">{group.title}</span>
             </div>
 
             {group.ingredients.length > 0 && (

@@ -7,7 +7,6 @@ import { generateMealPlanTool } from "./tools/generate-meal-plan"
 import { updateConstraintsTool } from "./tools/update-constraints"
 import { reviseMealPlanTool } from "./tools/revise-meal-plan"
 import { learnPreferenceTool } from "./tools/learn-preference"
-import { saveRecipeTool } from "./tools/save-recipe"
 import { recordMealPlanTool } from "./tools/record-meal-plan"
 
 /** ツールの使い方をエージェントに指示する運用プロンプト（US1〜US4） */
@@ -20,8 +19,7 @@ const OPERATION_INSTRUCTIONS = `
 5. ユーザーがアレルギー・苦手食材を伝えたら、updateConstraints ツールで登録する（add / remove / replace）。
 6. ユーザーが献立の変更を依頼したら（「○日目を魚料理に」「もっと簡単に」など）、reviseMealPlan ツールで対象日だけを差し替える。変更理由に好み（「辛いのが苦手」など）が含まれていれば preferenceNote に抽出して渡す。
 7. ユーザーが好み・味の感想を述べたら（「辛いのが苦手」「この生姜焼きはしょっぱかった」など）、learnPreference ツールで記録する。抽象的な感想も具体調整に翻訳して永続化する。
-8. ユーザーが献立の料理を「お気に入りに保存して」と指示したら（「肉じゃがをお気に入りに登録して」など）、saveRecipe ツールで保存する。材料・手順は直近の献立（generateMealPlan / reviseMealPlan の結果）から該当レシピをそのまま転記する。creation せず、会話中に該当レシピが見当たらなければユーザーに確認する。これは味の好みを記録する learnPreference とは別物なので混同しない。
-9. ユーザーが確定の意思をはっきり示したら（「はい」「OK」「これで作ります」「確定して」など）、recordMealPlan ツールで食事カレンダーに記録する。承認された献立の全料理を meals に渡す。修正依頼・曖昧な返答・「どうしようかな」といった迷いの言葉では呼ばない。記録後は「カレンダーに記録しました」と簡潔に伝える。
+8. ユーザーが確定の意思をはっきり示したら（「はい」「OK」「これで作ります」「確定して」など）、recordMealPlan ツールで食事カレンダーに記録する。承認された献立の全料理を meals に渡す。修正依頼・曖昧な返答・「どうしようかな」といった迷いの言葉では呼ばない。記録後は「カレンダーに記録しました」と簡潔に伝える。
 
 ## 曖昧・不完全な入力の扱い方（FR-026）
 - 食材名が不明瞭（「お肉」「野菜」など）: 一般的な代表食材（「鶏肉」「キャベツ」など）を前提に置き、「○○として扱いました」のように明示する。
@@ -44,7 +42,6 @@ export async function runAgent(messages: ModelMessage[]) {
       updateConstraints: updateConstraintsTool,
       reviseMealPlan: reviseMealPlanTool,
       learnPreference: learnPreferenceTool,
-      saveRecipe: saveRecipeTool,
       recordMealPlan: recordMealPlanTool,
     },
     // ツール呼び出し後にモデルが応答を続けられるよう複数ステップを許可する
