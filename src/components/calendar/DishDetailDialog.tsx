@@ -172,7 +172,7 @@ export function DishDetailDialog({
                       <AlertDialogCancel>キャンセル</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={() => onDelete(log.id)}
-                        className="text-destructive-foreground bg-destructive hover:bg-destructive/90"
+                        variant="destructive"
                       >
                         削除
                       </AlertDialogAction>
