@@ -10,6 +10,9 @@ env:
   REGION: asia-northeast1
   SERVICE: mottain-ai
   REPOSITORY: mottain-ai
+  DB_NAME: mottain_ai
+  DB_USER: app
+  CLOUD_SQL_PROXY_VERSION: v2.23.0
 
 jobs:
   deploy:
@@ -30,6 +33,28 @@ jobs:
 
       - uses: google-github-actions/setup-gcloud@v2
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 新イメージが期待するスキーマを先に適用してからデプロイする
+      - name: Run database migrations
+        run: |
+          curl -sSfL -o cloud-sql-proxy "https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/${CLOUD_SQL_PROXY_VERSION}/cloud-sql-proxy.linux.amd64"
+          chmod +x cloud-sql-proxy
+          ./cloud-sql-proxy "${PROJECT_ID}:${REGION}:${SERVICE}-pg" --port 5432 &
+          sleep 5
+          DB_PASSWORD="$(gcloud secrets versions access latest --secret=database-password)"
+          DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@127.0.0.1:5432/${DB_NAME}" pnpm db:migrate
+
       - name: Configure Docker
         run: gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
 
@@ -45,4 +70,7 @@ jobs:
           gcloud run deploy "${SERVICE}" \
             --image "${IMAGE}" \
             --region "${REGION}" \
-            --platform managed
+            --platform managed \
+            --add-cloudsql-instances "${PROJECT_ID}:${REGION}:${SERVICE}-pg" \
+            --set-env-vars "GOOGLE_CLOUD_PROJECT=${PROJECT_ID},DB_SOCKET_PATH=/cloudsql/${PROJECT_ID}:${REGION}:${SERVICE}-pg" \
+            --set-secrets "DATABASE_URL=database-url:latest"
