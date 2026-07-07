@@ -63,8 +63,9 @@ resource "google_cloud_run_v2_service" "app" {
   }
 
   lifecycle {
-    # イメージは CD が更新するため Terraform では追従しない
-    ignore_changes = [template[0].containers[0].image]
+    # 実行時構成（イメージ・環境変数・Cloud SQL 接続など）は CD の
+    # gcloud run deploy が管理するため Terraform では追従しない
+    ignore_changes = [template, client, client_version, scaling]
   }
 
   depends_on = [google_project_service.services]
