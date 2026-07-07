@@ -26,7 +26,6 @@ type Props = {
   onOpenChange: (open: boolean) => void
   onDelete: (id: string) => void
   onSaveRecipe: (log: MealLog) => void
-  onComment: (log: MealLog, comment: string) => void
 }
 
 export function DishDetailDialog({
@@ -35,11 +34,11 @@ export function DishDetailDialog({
   onOpenChange,
   onDelete,
   onSaveRecipe,
-  onComment,
 }: Props) {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [comment, setComment] = useState("")
+  const [sending, setSending] = useState(false)
 
   async function handleSaveRecipe() {
     if (saving || saved) return
@@ -64,11 +63,31 @@ export function DishDetailDialog({
     }
   }
 
-  function handleSendComment() {
+  async function handleSendComment() {
     const text = comment.trim()
-    if (!text) return
-    onComment(log, text)
-    onOpenChange(false)
+    if (!text || sending) return
+    setSending(true)
+    try {
+      const res = await fetch("/api/meals/comment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dishTitle: log.content.title,
+          eatenOn: log.eatenOn,
+          comment: text,
+        }),
+      })
+      if (!res.ok) {
+        toast.error("送信に失敗しました。もう一度お試しください。")
+        return
+      }
+      setComment("")
+      toast.success("AIに送りました。次回の献立に反映されます。")
+    } catch {
+      toast.error("通信エラーが発生しました。")
+    } finally {
+      setSending(false)
+    }
   }
 
   const { content } = log
@@ -116,7 +135,7 @@ export function DishDetailDialog({
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
+                if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
                   e.preventDefault()
                   handleSendComment()
                 }
@@ -128,11 +147,11 @@ export function DishDetailDialog({
             <div className="flex items-center justify-between">
               <button
                 onClick={handleSendComment}
-                disabled={!comment.trim()}
+                disabled={!comment.trim() || sending}
                 className="flex items-center gap-1 rounded px-2 py-1 text-xs text-muted-foreground hover:bg-accent/60 hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <MessageCircle size={13} />
-                チャットに送る
+                {sending ? "送信中..." : "AIに送る"}
               </button>
 
               <div className="flex items-center gap-1">

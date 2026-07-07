@@ -282,30 +282,6 @@ function ChatPage() {
     }))
   }, [])
 
-  const handleCommentFromCalendar = useCallback(
-    async (
-      log: import("@/server/services/meal-log").MealLog,
-      comment: string
-    ) => {
-      let sid = activeId
-      if (!sid) {
-        const res = await fetch("/api/sessions", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({}),
-        })
-        const session: ChatSession = await res.json()
-        setSessions((prev) => [session, ...prev])
-        setActiveId(session.id)
-        sid = session.id
-      }
-      setView("chat")
-      const text = `${log.eatenOn}に記録した「${log.content.title}」について: ${comment}`
-      await sendMessage({ text })
-    },
-    [activeId, sendMessage]
-  )
-
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!input.trim() || isLoading) return
@@ -375,7 +351,6 @@ function ChatPage() {
               onNextMonth={nextMonth}
               onDeleteLog={handleDeleteMealLog}
               onSaveRecipe={() => loadSavedRecipes()}
-              onComment={handleCommentFromCalendar}
             />
           </main>
         ) : (

@@ -10,7 +10,6 @@ type Props = {
   onNextMonth: () => void
   onDeleteLog: (id: string) => void
   onSaveRecipe: (log: MealLog) => void
-  onComment: (log: MealLog, comment: string) => void
 }
 
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"]
@@ -41,7 +40,6 @@ export function MonthCalendar({
   onNextMonth,
   onDeleteLog,
   onSaveRecipe,
-  onComment,
 }: Props) {
   const cells = buildCalendarDays(month)
   const today = todayString()
@@ -107,7 +105,6 @@ export function MonthCalendar({
                   logs={dayLogs}
                   onDeleteLog={onDeleteLog}
                   onSaveRecipe={onSaveRecipe}
-                  onComment={onComment}
                 />
               )}
             </div>
