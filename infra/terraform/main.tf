@@ -181,7 +181,8 @@ resource "google_sql_user" "app" {
 
 # ---- Secret Manager ----
 
-# Cloud Run 用の接続 URL（Cloud SQL unix ソケット経由）
+# Cloud Run 用の接続 URL。実際の接続先は環境変数 DB_SOCKET_PATH
+# （Cloud SQL unix ソケット）でアプリ側が上書きするため、ホスト部はプレースホルダ
 resource "google_secret_manager_secret" "database_url" {
   count = var.enable_cloud_sql ? 1 : 0
 
@@ -198,7 +199,7 @@ resource "google_secret_manager_secret_version" "database_url" {
   count = var.enable_cloud_sql ? 1 : 0
 
   secret      = google_secret_manager_secret.database_url[0].id
-  secret_data = "postgresql://${google_sql_user.app[0].name}:${random_password.db[0].result}@/${google_sql_database.app[0].name}?host=/cloudsql/${google_sql_database_instance.postgres[0].connection_name}"
+  secret_data = "postgresql://${google_sql_user.app[0].name}:${random_password.db[0].result}@localhost:5432/${google_sql_database.app[0].name}"
 }
 
 # CD のマイグレーション用（Cloud SQL Auth Proxy 経由で URL を組み立てる）
