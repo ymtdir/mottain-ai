@@ -5,19 +5,22 @@ import { registerRecipe } from "../../services/saved-recipe"
 const inputSchema = z.object({
   title: z
     .string()
+    .min(1)
     .describe(
       "お気に入りに保存する料理名。会話中の献立からそのまま使う。「○日目」などの補足表記は含めない"
     ),
   ingredients: z
     .array(
       z.object({
-        name: z.string().describe("食材名"),
+        name: z.string().min(1).describe("食材名"),
         amount: z.string().nullable().describe("分量の目安。不明なら null"),
       })
     )
+    .min(1)
     .describe("材料。会話中の該当レシピからそのまま転記する（創作しない）"),
   steps: z
-    .array(z.string())
+    .array(z.string().min(1))
+    .min(1)
     .describe("調理手順。会話中の該当レシピからそのまま転記する（創作しない）"),
   notes: z.string().nullable().describe("日持ち注意など。無ければ null"),
 })
