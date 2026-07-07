@@ -7,7 +7,7 @@ export const Route = createFileRoute("/api/meals")({
       GET: async ({ request }) => {
         const url = new URL(request.url)
         const month = url.searchParams.get("month")
-        if (!month || !/^\d{4}-\d{2}$/.test(month)) {
+        if (!month || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
           return Response.json(
             { error: "month パラメータが不正です（例: 2026-07）" },
             { status: 400 }
