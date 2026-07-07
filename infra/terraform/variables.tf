@@ -37,7 +37,13 @@ variable "allow_unauthenticated" {
 variable "enable_cloud_sql" {
   description = "Cloud SQL for PostgreSQL を作成するか（必要になったら true）"
   type        = bool
-  default     = false
+  default     = true
+}
+
+variable "db_name" {
+  description = "アプリが使うデータベース名"
+  type        = string
+  default     = "mottain_ai"
 }
 
 variable "db_tier" {

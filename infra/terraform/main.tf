@@ -8,6 +8,8 @@ locals {
     "iamcredentials.googleapis.com",
     "sts.googleapis.com",
     "sqladmin.googleapis.com",
+    "secretmanager.googleapis.com",
+    "aiplatform.googleapis.com",
   ]
 }
 
@@ -33,6 +35,13 @@ resource "google_artifact_registry_repository" "app" {
 resource "google_service_account" "runtime" {
   account_id   = "${var.service_name}-run"
   display_name = "Cloud Run runtime SA (${var.service_name})"
+}
+
+# 実行 SA が Vertex AI（Gemini）を呼び出せるようにする
+resource "google_project_iam_member" "runtime_vertex_ai" {
+  project = var.project_id
+  role    = "roles/aiplatform.user"
+  member  = "serviceAccount:${google_service_account.runtime.email}"
 }
 
 # Cloud Run サービス。初回は公開プレースホルダイメージで作成し、
@@ -130,7 +139,7 @@ resource "google_service_account_iam_member" "deployer_wif" {
   member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${var.github_repository}"
 }
 
-# ---- DB（必要になったら有効化）----
+# ---- DB（enable_cloud_sql = true で有効化）----
 
 resource "google_sql_database_instance" "postgres" {
   count = var.enable_cloud_sql ? 1 : 0
@@ -145,4 +154,105 @@ resource "google_sql_database_instance" "postgres" {
   }
 
   depends_on = [google_project_service.services]
+}
+
+resource "google_sql_database" "app" {
+  count = var.enable_cloud_sql ? 1 : 0
+
+  name     = var.db_name
+  instance = google_sql_database_instance.postgres[0].name
+}
+
+# URL に埋め込むためエンコード不要な英数字のみで生成する
+resource "random_password" "db" {
+  count = var.enable_cloud_sql ? 1 : 0
+
+  length  = 32
+  special = false
+}
+
+resource "google_sql_user" "app" {
+  count = var.enable_cloud_sql ? 1 : 0
+
+  name     = "app"
+  instance = google_sql_database_instance.postgres[0].name
+  password = random_password.db[0].result
+}
+
+# ---- Secret Manager ----
+
+# Cloud Run 用の接続 URL（Cloud SQL unix ソケット経由）
+resource "google_secret_manager_secret" "database_url" {
+  count = var.enable_cloud_sql ? 1 : 0
+
+  secret_id = "database-url"
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.services]
+}
+
+resource "google_secret_manager_secret_version" "database_url" {
+  count = var.enable_cloud_sql ? 1 : 0
+
+  secret      = google_secret_manager_secret.database_url[0].id
+  secret_data = "postgresql://${google_sql_user.app[0].name}:${random_password.db[0].result}@/${google_sql_database.app[0].name}?host=/cloudsql/${google_sql_database_instance.postgres[0].connection_name}"
+}
+
+# CD のマイグレーション用（Cloud SQL Auth Proxy 経由で URL を組み立てる）
+resource "google_secret_manager_secret" "database_password" {
+  count = var.enable_cloud_sql ? 1 : 0
+
+  secret_id = "database-password"
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.services]
+}
+
+resource "google_secret_manager_secret_version" "database_password" {
+  count = var.enable_cloud_sql ? 1 : 0
+
+  secret      = google_secret_manager_secret.database_password[0].id
+  secret_data = random_password.db[0].result
+}
+
+# ---- DB 関連の IAM ----
+
+# 実行 SA: Cloud SQL への接続と DATABASE_URL の読み取り
+resource "google_project_iam_member" "runtime_cloudsql" {
+  count = var.enable_cloud_sql ? 1 : 0
+
+  project = var.project_id
+  role    = "roles/cloudsql.client"
+  member  = "serviceAccount:${google_service_account.runtime.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "runtime_database_url" {
+  count = var.enable_cloud_sql ? 1 : 0
+
+  secret_id = google_secret_manager_secret.database_url[0].id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.runtime.email}"
+}
+
+# デプロイ SA: マイグレーション実行のための接続とパスワード読み取り
+resource "google_project_iam_member" "deployer_cloudsql" {
+  count = var.enable_cloud_sql ? 1 : 0
+
+  project = var.project_id
+  role    = "roles/cloudsql.client"
+  member  = "serviceAccount:${google_service_account.deployer.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "deployer_database_password" {
+  count = var.enable_cloud_sql ? 1 : 0
+
+  secret_id = google_secret_manager_secret.database_password[0].id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.deployer.email}"
 }

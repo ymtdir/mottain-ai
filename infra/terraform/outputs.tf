@@ -17,3 +17,8 @@ output "deployer_service_account" {
   description = "GitHub Actions 変数 DEPLOYER_SA に設定する値"
   value       = google_service_account.deployer.email
 }
+
+output "cloud_sql_connection_name" {
+  description = "Cloud SQL のインスタンス接続名（PROJECT:REGION:INSTANCE）"
+  value       = var.enable_cloud_sql ? google_sql_database_instance.postgres[0].connection_name : null
+}

@@ -5,5 +5,5 @@ service_name      = "mottain-ai"
 repository_id     = "mottain-ai"
 github_repository = "ymtdir/mottain-ai"
 
-# DB は必要になったら true にして apply する
-enable_cloud_sql = false
+# Cloud SQL（PostgreSQL）。アプリの動作に必須
+enable_cloud_sql = true
