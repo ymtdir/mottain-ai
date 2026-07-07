@@ -343,14 +343,6 @@ function ChatPage() {
         onAddTendency={handleAddTendency}
         onRemoveTendency={handleRemoveTendency}
         onRemoveRecipe={handleRemoveRecipe}
-        onNavigateFavorites={() => {
-          // チャット経由の保存など、一覧が古い可能性があるので開くたびに再取得する
-          loadSavedRecipes()
-          setView("favorites")
-        }}
-        onNavigateCalendar={() => {
-          setView("calendar")
-        }}
       />
       <SidebarInset className="flex h-svh flex-col">
         <AppHeader
