@@ -82,7 +82,7 @@ export function DishDetailDialog({
         return
       }
       setComment("")
-      toast.success("AIに送りました。次回の献立に反映されます。")
+      toast.success("コメントありがとうございます！食の好みに保存し、次回の献立の参考にします。")
     } catch {
       toast.error("通信エラーが発生しました。")
     } finally {
