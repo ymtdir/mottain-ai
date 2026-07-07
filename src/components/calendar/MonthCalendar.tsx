@@ -90,10 +90,7 @@ export function MonthCalendar({
           const isToday = dateStr === today
           const hasLogs = dayLogs.length > 0
           return (
-            <div
-              key={i}
-              className={`min-h-20 p-1 ${hasLogs ? "bg-primary/5" : "bg-card"}`}
-            >
+            <div key={i} className="min-h-20 bg-card p-1">
               <div
                 className={`mb-1 flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${
                   isToday
