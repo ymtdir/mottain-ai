@@ -21,11 +21,11 @@ Phase 0 の設計判断。既存スタック（001）を前提に、本機能で
   - **JSONB に data URL（base64）で埋める**: 行が肥大し一覧取得が重くなる。不採用。
 - **ADR**: R1 と同じ ADR にまとめて記録する。
 
-## R3. イラスト生成モデル（Imagen）
+## R3. イラスト生成モデル（Gemini 画像モデル）
 
-- **Decision**: 既存の `@ai-sdk/google-vertex` プロバイダ経由で Imagen を用い、Vercel AI SDK の `experimental_generateImage` で生成する。プロバイダラッパは `src/server/model/imagen.ts` に `gemini.ts` と同じ遅延生成パターンで実装する。具体のモデル ID・画像サイズ・枚数（1枚）は実装時に確定。
-- **Rationale**: ADR-06（Gemini Enterprise Agent Platform）・ADR-07（Vercel AI SDK）の範囲内で、新規依存も新規 ADR も不要。認証は既存の ADC（`GOOGLE_CLOUD_PROJECT`/`GOOGLE_CLOUD_LOCATION`）をそのまま使える。
-- **Alternatives considered**: 外部画像生成 API（別ベンダー）: 認証・課金・ADR が増える。不採用。
+- **Decision**: 既存の `@ai-sdk/google-vertex` プロバイダ経由で Gemini 画像モデル `gemini-3.1-flash-image` を用い、Vercel AI SDK の `generateText`（`responseModalities: ["TEXT","IMAGE"]` で画像出力を得る）で生成する。プロバイダラッパは `src/server/model/image-model.ts` に `gemini.ts` と同じ遅延生成パターンで実装する。画像は 1 枚。当該モデルは `global` ロケーションで提供されるため、画像用のロケーションは `GOOGLE_CLOUD_IMAGE_LOCATION`（既定 `global`）で上書きする。
+- **Rationale**: ADR-06（Gemini Enterprise Agent Platform）・ADR-07（Vercel AI SDK）の範囲内で、新規依存も新規 ADR も不要。認証は既存の ADC をそのまま使える。当初は Imagen（`experimental_generateImage`）を想定していたが、Imagen 4 系 API が 2026-06-24 に終了し画像生成が Gemini API へ統合されたため、Gemini 画像モデルへ移行した。`flash` はコスト・速度に優れ、料理イラスト用途では品質も十分（`pro` は高品質だが低速・高コスト）。
+- **Alternatives considered**: `gemini-3-pro-image`（最高品質だが生成が遅く高コスト。イラスト用途には過剰）／ 外部画像生成 API（別ベンダー）: 認証・課金・ADR が増える。いずれも不採用。
 
 ## R4. 生成状況の UI への反映方法
 
@@ -47,6 +47,6 @@ Phase 0 の設計判断。既存スタック（001）を前提に、本機能で
 
 ## まとめ（未解決なし）
 
-- 新規 GCP インフラは MVP では追加しない（生成＝既存の Gemini Enterprise Agent Platform（Imagen）、保存＝既存 Postgres）。
+- 新規 GCP インフラは MVP では追加しない（生成＝既存の Gemini Enterprise Agent Platform（Gemini 画像モデル）、保存＝既存 Postgres）。
 - 実装前フォロー: R1・R2 を1つの ADR にまとめて記録する（`create-adr`）。
 - NEEDS CLARIFICATION は残っていない。

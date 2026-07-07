@@ -6,9 +6,14 @@ import type { SavedRecipeListItem } from "@/server/services/saved-recipe"
 type Props = {
   recipes: SavedRecipeListItem[]
   onRefresh: () => void
+  onDeleteRecipe: (id: string) => void
 }
 
-export function SavedRecipesView({ recipes, onRefresh }: Props) {
+export function SavedRecipesView({
+  recipes,
+  onRefresh,
+  onDeleteRecipe,
+}: Props) {
   // 表示中は未完了レシピの生成を保証しつつ、状況が変わるまで軽くポーリングする（R1/R4）
   const firedRef = useRef<Set<string>>(new Set())
 
@@ -47,7 +52,7 @@ export function SavedRecipesView({ recipes, onRefresh }: Props) {
     return (
       <div className="flex flex-col items-center gap-2 py-8 text-center text-muted-foreground">
         <BookOpen size={32} strokeWidth={1.5} />
-        <p className="text-sm">保存したレシピはまだありません</p>
+        <p className="text-sm">お気に入りレシピはまだありません</p>
         <p className="text-xs">
           献立のレシピカードにある「保存」ボタンで登録できます
         </p>
@@ -56,12 +61,13 @@ export function SavedRecipesView({ recipes, onRefresh }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       {recipes.map((recipe) => (
         <SavedRecipeCard
           key={recipe.id}
           recipe={recipe}
           onRetry={() => fireIllustration(recipe.id)}
+          onDelete={() => onDeleteRecipe(recipe.id)}
         />
       ))}
     </div>

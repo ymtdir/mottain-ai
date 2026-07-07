@@ -28,7 +28,7 @@ feature 002（レシピカード）では、お気に入り登録したレシピ
 
 MVP は次の方式を採用する。
 
-**生成**: 登録時にレシピを `illustrationStatus=pending` で保存して即時応答する。クライアントは `POST /api/recipes/{id}/illustration` を fire-and-forget で発火する。生成そのものはこのエンドポイントのリクエスト内で実行する（CPU が割り当たる文脈で走らせる）。カードを開いた際に status が `pending`／`failed`、または **stale な `generating`**（リース期限切れ）なら生成を（再）保証する。手動再試行（FR-015）も同じエンドポイントで受ける。生成モデルは既存の `@ai-sdk/google-vertex` 経由の Imagen を Vercel AI SDK の `experimental_generateImage` で呼ぶ（[ADR-07](07-agent-framework-vercel-ai-sdk.md) の延長）。
+**生成**: 登録時にレシピを `illustrationStatus=pending` で保存して即時応答する。クライアントは `POST /api/recipes/{id}/illustration` を fire-and-forget で発火する。生成そのものはこのエンドポイントのリクエスト内で実行する（CPU が割り当たる文脈で走らせる）。カードを開いた際に status が `pending`／`failed`、または **stale な `generating`**（リース期限切れ）なら生成を（再）保証する。手動再試行（FR-015）も同じエンドポイントで受ける。生成モデルは既存の `@ai-sdk/google-vertex` 経由の Gemini 画像モデル（`gemini-3.1-flash-image`）を Vercel AI SDK の `generateText`（`responseModalities: ["TEXT","IMAGE"]` で画像出力を得る）で呼ぶ（[ADR-07](07-agent-framework-vercel-ai-sdk.md) の延長）。当初は Imagen（`experimental_generateImage`）を想定していたが、Imagen 4 系 API が 2026-06-24 に終了し画像生成が Gemini API へ統合されたため、Gemini 画像モデルへ移行した。なお当該モデルは `global` ロケーションで提供されるため、画像用のロケーションは `GOOGLE_CLOUD_IMAGE_LOCATION`（既定 `global`）で上書きする。
 
 **保存・配信**: 生成した画像バイトと MIME を Postgres の `bytea` 列に保持し、`GET /api/recipes/{id}/illustration` で `Content-Type`・キャッシュヘッダ付きにストリーム配信する。一覧応答には画像バイトを載せない（メタと status のみ／INV-2）。
 
@@ -37,7 +37,7 @@ MVP は次の方式を採用する。
 - 生成を「独立したリクエスト」に閉じ込めれば、その処理の間は CPU が割り当たり確実に完了する。Cloud Run のスロットル問題を回避しつつ、キューや常駐ワーカーを足さずに「登録は即時・生成は非同期・タブを閉じても後で回復可能」を満たせる。
 - カード開封時の生成保証＋手動再試行で、発火が失われたケースも回復する。生成中にクラッシュ・再起動しても、`generating` を「リース」とみなし期限切れ（stale）を再キック対象にすることで永久固定を防ぐ。
 - 画像は既存の Cloud SQL だけで完結する。GCS バケット・IAM・署名 URL が不要で、配信をアプリ経由にすることで公開バケットの権限設計も要らない。単一ユーザー・数百件・1 枚 ≲ 1–2MB の規模では DB 保持で十分。
-- いずれも新規 GCP インフラを増やさない（生成＝既存の Imagen、保存＝既存 Postgres）。
+- いずれも新規 GCP インフラを増やさない（生成＝既存の Gemini 画像モデル、保存＝既存 Postgres）。
 
 ## 各選択肢の比較
 

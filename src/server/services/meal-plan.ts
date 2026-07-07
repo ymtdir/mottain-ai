@@ -139,7 +139,7 @@ export function orderByPerishability(
 
 /** LLM に生成させる 1 レシピの構造（day は生成後にコード側で振る） */
 const generatedRecipeSchema = z.object({
-  title: z.string().describe("料理名"),
+  title: z.string().describe("料理名。「○日目」などの日付表記を含めないこと"),
   ingredients: z
     .array(
       z.object({
@@ -188,7 +188,8 @@ function buildMealPlanPrompt(
     "- 傷みやすい食材（日持ち high）を優先的に使う。",
     "- 手持ちで足りない食材は使ってよい（買い物リストは別途コード側で算出する）。",
     `- 必ず${days}日分の夕食を生成する（配列の要素数は${days}）。`,
-    "- カレー・シチュー・煮物など「まとめて作れる料理」は複数日で計画してよい。その場合、2日目以降のタイトルは「○○（残り）」のように表記する。材料・手順は初日の要素にのみ書き、残り日の要素は steps を空にする。",
+    "- カレー・シチュー・煮物など「まとめて作れる料理」は複数日で計画してよい。その場合、翌日以降も同じ title（例: 「無水カレー」）をそのまま使う。材料・手順は初日の要素にのみ書き、残り日の steps は空にする。",
+    "- title（料理名）は純粋な料理名のみとする。「○日目」「（残り）」「（1日目）」などの補足表記を title に含めないこと。",
   ]
 
   if (avoidanceItems && avoidanceItems.length > 0) {
