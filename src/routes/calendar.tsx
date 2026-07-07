@@ -1,10 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useState, useEffect, useCallback } from "react"
 import { CalendarDays } from "lucide-react"
 import { toast } from "sonner"
 import { MonthCalendar } from "@/components/calendar/MonthCalendar"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { SessionSidebar } from "@/components/chat/SessionSidebar"
+import { todayInTokyo, toYearMonth } from "@/lib/date"
 import type { MealLog } from "@/server/services/meal-log"
 import type { ChatSession } from "@/server/services/chat-session"
 import type { AvoidanceItem } from "@/server/services/avoidance-guard"
@@ -12,16 +13,9 @@ import type { PreferenceMemory } from "@/server/services/preference"
 
 export const Route = createFileRoute("/calendar")({ component: CalendarPage })
 
-function toYearMonth(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
-}
-
 function CalendarPage() {
-  const [month, setMonth] = useState(() =>
-    toYearMonth(
-      new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }))
-    )
-  )
+  const navigate = useNavigate()
+  const [month, setMonth] = useState(() => toYearMonth(todayInTokyo()))
   const [logs, setLogs] = useState<MealLog[]>([])
   const [sessions, setSessions] = useState<ChatSession[]>([])
   const [constraints, setConstraints] = useState<AvoidanceItem[]>([])
@@ -30,15 +24,17 @@ function CalendarPage() {
     recipeAdjustments: [],
   })
 
-  const loadLogs = useCallback((m: string) => {
-    fetch(`/api/meals?month=${m}`)
+  const loadLogs = useCallback((m: string, signal?: AbortSignal) => {
+    fetch(`/api/meals?month=${m}`, { signal })
       .then((r) => r.json())
       .then((data: MealLog[]) => setLogs(data))
       .catch(() => {})
   }, [])
 
   useEffect(() => {
-    loadLogs(month)
+    const controller = new AbortController()
+    loadLogs(month, controller.signal)
+    return () => controller.abort()
   }, [loadLogs, month])
 
   useEffect(() => {
@@ -58,14 +54,16 @@ function CalendarPage() {
 
   function prevMonth() {
     const [y, m] = month.split("-").map(Number)
-    const d = new Date(y, m - 2, 1)
-    setMonth(toYearMonth(d))
+    const pm = m === 1 ? 12 : m - 1
+    const py = m === 1 ? y - 1 : y
+    setMonth(`${py}-${String(pm).padStart(2, "0")}`)
   }
 
   function nextMonth() {
     const [y, m] = month.split("-").map(Number)
-    const d = new Date(y, m, 1)
-    setMonth(toYearMonth(d))
+    const nm = m === 12 ? 1 : m + 1
+    const ny = m === 12 ? y + 1 : y
+    setMonth(`${ny}-${String(nm).padStart(2, "0")}`)
   }
 
   async function handleDeleteLog(id: string) {
@@ -85,10 +83,10 @@ function CalendarPage() {
         sessions={sessions}
         activeId={null}
         onSelect={() => {
-          window.location.href = "/"
+          void navigate({ to: "/" })
         }}
         onCreate={async () => {
-          window.location.href = "/"
+          void navigate({ to: "/" })
         }}
         onRename={async () => {}}
         onDelete={async () => {}}
@@ -117,7 +115,7 @@ function CalendarPage() {
         onRemoveTendency={async () => {}}
         onRemoveRecipe={async () => {}}
         onNavigateFavorites={() => {
-          window.location.href = "/"
+          void navigate({ to: "/" })
         }}
         onNavigateCalendar={() => {}}
       />
