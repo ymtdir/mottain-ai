@@ -126,7 +126,7 @@ export const mealLogs = pgTable(
       .notNull()
       .defaultNow(),
   },
-  (t) => [index("meal_logs_user_eaten_on_idx").on(t.userId, t.eatenOn)]
+  (t) => [uniqueIndex("meal_logs_user_eaten_on_uidx").on(t.userId, t.eatenOn)]
 )
 
 // 好みメモリ（ソフト）。全体傾向 + レシピ固有調整を JSONB で保持し、提案時にコンテキスト注入する
