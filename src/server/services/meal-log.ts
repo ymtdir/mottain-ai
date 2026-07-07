@@ -140,7 +140,7 @@ export async function recordMeals(
     if (existing) {
       conflicts.push({
         date,
-        existingTitle: (existing.content as MealLogContent).title,
+        existingTitle: existing.content.title,
         newTitle: meals[i].content.title,
       })
     } else {
