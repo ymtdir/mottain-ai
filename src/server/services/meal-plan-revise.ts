@@ -120,12 +120,21 @@ export async function reviseMealPlan(params: {
     ),
   })
 
+  // LLM がプロンプト制約を無視して日付表記を混入させた場合の防御的除去
+  function sanitizeTitle(title: string): string {
+    return title
+      .replace(/^\s*\d+日目\s*/, "")
+      .replace(/[（(]\s*残り\s*[)）]\s*$/, "")
+      .trim()
+  }
+
   // 変更対象日を新レシピで置き換え、それ以外は元のまま保つ
   const replacementByDay = new Map<number, Recipe>(
     object.meals.map((m) => [
       m.day,
       {
         ...m,
+        title: sanitizeTitle(m.title),
         ingredients: m.ingredients.map((i) => ({
           ...i,
           amount: i.amount ?? null,
