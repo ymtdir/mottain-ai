@@ -3,13 +3,13 @@ import { assignDates, monthRange } from "./meal-log"
 
 describe("assignDates", () => {
   it("1日分: 承認日当日に写像する", () => {
-    const approvalDate = new Date("2026-07-10")
+    const approvalDate = new Date(Date.UTC(2026, 6, 10))
     const result = assignDates([{ day: 1 }], approvalDate)
     expect(result).toEqual(["2026-07-10"])
   })
 
   it("3日分: 承認日起点で連続日に写像する", () => {
-    const approvalDate = new Date("2026-07-10")
+    const approvalDate = new Date(Date.UTC(2026, 6, 10))
     const result = assignDates(
       [{ day: 1 }, { day: 2 }, { day: 3 }],
       approvalDate
@@ -18,7 +18,7 @@ describe("assignDates", () => {
   })
 
   it("月またぎ: 7/30 承認の3日分が 8/1 をまたぐ", () => {
-    const approvalDate = new Date("2026-07-30")
+    const approvalDate = new Date(Date.UTC(2026, 6, 30))
     const result = assignDates(
       [{ day: 1 }, { day: 2 }, { day: 3 }],
       approvalDate
@@ -27,7 +27,7 @@ describe("assignDates", () => {
   })
 
   it("同一 day が複数あれば同じ eatenOn を返す", () => {
-    const approvalDate = new Date("2026-07-10")
+    const approvalDate = new Date(Date.UTC(2026, 6, 10))
     const result = assignDates([{ day: 1 }, { day: 1 }], approvalDate)
     expect(result).toEqual(["2026-07-10", "2026-07-10"])
   })
