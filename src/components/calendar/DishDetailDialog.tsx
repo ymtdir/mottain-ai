@@ -86,7 +86,7 @@ export function DishDetailDialog({
         <>
           コメントありがとうございます！
           <br />
-          食の好みに保存し、次回の献立の参考にします。
+          次回の献立の参考にします。
         </>
       )
     } catch {
