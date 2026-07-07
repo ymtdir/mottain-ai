@@ -4,10 +4,11 @@ import { toast } from "sonner"
 import { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import type { FormEvent } from "react"
 import type { UIMessage } from "ai"
-import { Star, CalendarDays } from "lucide-react"
 import { ChatInput } from "@/components/chat/ChatInput"
 import { MessageList } from "@/components/chat/MessageList"
 import { SessionSidebar } from "@/components/chat/SessionSidebar"
+import { AppHeader } from "@/components/layout/AppHeader"
+import type { AppTab } from "@/components/layout/AppHeader"
 import { SavedRecipesView } from "@/components/recipe/SavedRecipesView"
 import { MonthCalendar } from "@/components/calendar/MonthCalendar"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
@@ -18,12 +19,24 @@ import type { PreferenceMemory } from "@/server/services/preference"
 import type { SavedRecipeListItem } from "@/server/services/saved-recipe"
 import type { MealLog } from "@/server/services/meal-log"
 
-export const Route = createFileRoute("/")({ component: ChatPage })
+type View = AppTab
 
-type View = "chat" | "favorites" | "calendar"
+export const Route = createFileRoute("/")({
+  component: ChatPage,
+  validateSearch: (search: Record<string, unknown>): { view?: View } => {
+    const v = search.view
+    if (v === "favorites" || v === "calendar") return { view: v }
+    return {}
+  },
+})
 
 function ChatPage() {
-  const [view, setView] = useState<View>("chat")
+  const { view: viewParam } = Route.useSearch()
+  const [view, setView] = useState<View>(viewParam ?? "chat")
+
+  useEffect(() => {
+    if (viewParam) setView(viewParam)
+  }, [viewParam])
   const [sessions, setSessions] = useState<ChatSession[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
   const [constraints, setConstraints] = useState<AvoidanceItem[]>([])
@@ -335,47 +348,36 @@ function ChatPage() {
         onAddTendency={handleAddTendency}
         onRemoveTendency={handleRemoveTendency}
         onRemoveRecipe={handleRemoveRecipe}
-        onNavigateFavorites={() => {
-          // チャット経由の保存など、一覧が古い可能性があるので開くたびに再取得する
-          loadSavedRecipes()
-          setView("favorites")
-        }}
-        onNavigateCalendar={() => {
-          setView("calendar")
-        }}
       />
       <SidebarInset className="flex h-svh flex-col">
+        <AppHeader
+          current={view}
+          onSelectChat={() => setView("chat")}
+          onSelectCalendar={() => setView("calendar")}
+          onSelectFavorites={() => {
+            loadSavedRecipes()
+            setView("favorites")
+          }}
+        />
         {view === "favorites" ? (
-          <>
-            <header className="sticky top-0 z-10 flex items-center gap-3 border-b bg-background/95 px-6 py-4 backdrop-blur">
-              <Star size={20} className="text-yellow-400" fill="currentColor" />
-              <h1 className="text-base font-semibold">お気に入りレシピ</h1>
-            </header>
-            <main className="flex-1 overflow-y-auto p-6">
-              <SavedRecipesView
-                recipes={savedRecipes}
-                onRefresh={loadSavedRecipes}
-                onDeleteRecipe={handleDeleteSavedRecipe}
-              />
-            </main>
-          </>
+          <main className="flex-1 overflow-y-auto p-6">
+            <SavedRecipesView
+              recipes={savedRecipes}
+              onRefresh={loadSavedRecipes}
+              onDeleteRecipe={handleDeleteSavedRecipe}
+            />
+          </main>
         ) : view === "calendar" ? (
-          <>
-            <header className="sticky top-0 z-10 flex items-center gap-3 border-b bg-background/95 px-6 py-4 backdrop-blur">
-              <CalendarDays size={20} className="text-primary" />
-              <h1 className="text-base font-semibold">食事カレンダー</h1>
-            </header>
-            <main className="flex-1 overflow-y-auto p-6">
-              <MonthCalendar
-                month={mealMonth}
-                logs={mealLogs}
-                onPrevMonth={prevMonth}
-                onNextMonth={nextMonth}
-                onDeleteLog={handleDeleteMealLog}
-                onSaveRecipe={() => loadSavedRecipes()}
-              />
-            </main>
-          </>
+          <main className="flex-1 overflow-y-auto p-6">
+            <MonthCalendar
+              month={mealMonth}
+              logs={mealLogs}
+              onPrevMonth={prevMonth}
+              onNextMonth={nextMonth}
+              onDeleteLog={handleDeleteMealLog}
+              onSaveRecipe={() => loadSavedRecipes()}
+            />
+          </main>
         ) : (
           <>
             <MessageList

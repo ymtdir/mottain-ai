@@ -88,8 +88,12 @@ export function MonthCalendar({
           const dateStr = `${year}-${mon}-${String(day).padStart(2, "0")}`
           const dayLogs = logsByDate.get(dateStr) ?? []
           const isToday = dateStr === today
+          const hasLogs = dayLogs.length > 0
           return (
-            <div key={i} className="min-h-20 bg-card p-1">
+            <div
+              key={i}
+              className={`min-h-20 p-1 ${hasLogs ? "bg-primary/5" : "bg-card"}`}
+            >
               <div
                 className={`mb-1 flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${
                   isToday
@@ -99,7 +103,7 @@ export function MonthCalendar({
               >
                 {day}
               </div>
-              {dayLogs.length > 0 && (
+              {hasLogs && (
                 <DayDishList
                   logs={dayLogs}
                   onDeleteLog={onDeleteLog}
