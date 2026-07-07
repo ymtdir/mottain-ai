@@ -6,7 +6,7 @@
 
 - 001（献立コア）が動作し、チャットで献立（`MealPlanCard`）が提案できること。
 - ローカル DB（Cloud SQL 相当の Postgres）に接続でき、`saved_recipes` のマイグレーションが適用済みであること。
-- Gemini Enterprise Agent Platform（Imagen）へ ADC で認証できること（`gcloud auth application-default login`、`GOOGLE_CLOUD_PROJECT` / `GOOGLE_CLOUD_LOCATION`）。イラスト生成の検証時のみ必要。
+- Gemini Enterprise Agent Platform（Gemini 画像モデル `gemini-3.1-flash-image`）へ ADC で認証できること（`gcloud auth application-default login`、`GOOGLE_CLOUD_PROJECT` / `GOOGLE_CLOUD_LOCATION`）。画像モデルは `global` ロケーション提供のため、必要なら `GOOGLE_CLOUD_IMAGE_LOCATION`（既定 `global`）で上書きする。イラスト生成の検証時のみ必要。
 
 ## 実行
 
@@ -21,10 +21,12 @@ pnpm test       # Vitest（サービスの単体テスト）
 
 ### US1: お気に入り登録（P1）
 
-1. チャットで献立を提案させ、`MealPlanCard` の一品に付いた保存ボタンを押す。
-2. 期待: 生成完了を待たず即時に「登録済み」表示に変わる（SC-007 / FR-011）。
-3. ページを再読み込みし、保存レシピ一覧に当該レシピが残っていることを確認（永続化 / SC-002）。
+1. チャットで献立を提案させ、`MealPlanCard` の一品に付いた保存ボタンを押す。まとめ調理（カレー等）で複数日に同じ料理名が並ぶ場合は 1 枚のカードにまとまり、材料・手順のある内容で保存される。
+2. 期待: 生成完了を待たず即時に「保存済み」表示に変わる（SC-007 / FR-011）。
+3. サイドバーの「お気に入りレシピ」を開くと、ページを再読み込みせずに当該レシピが一覧へ表示される（ライブ反映）。加えてページ再読み込み後も残っていること＝永続化を確認する（SC-002）。
 4. 同じレシピをもう一度登録しようとしても二重に増えないことを確認（FR-004）。
+5. チャットで「○○をお気に入りに保存して」と指示しても、直近の献立から当該レシピが保存される（`saveRecipe` ツール）。応答完了後、再読み込みせずに一覧とメニューカードの「保存済み」表示へ反映される。
+6. 保存に失敗した場合はトーストでエラーが表示される（黙って失敗しない）。
 
 ### US2: カード一覧・閲覧（P1）
 

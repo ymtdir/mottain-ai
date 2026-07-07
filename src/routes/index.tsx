@@ -4,9 +4,11 @@ import { toast } from "sonner"
 import { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import type { FormEvent } from "react"
 import type { UIMessage } from "ai"
+import { Star } from "lucide-react"
 import { ChatInput } from "@/components/chat/ChatInput"
 import { MessageList } from "@/components/chat/MessageList"
 import { SessionSidebar } from "@/components/chat/SessionSidebar"
+import { SavedRecipesView } from "@/components/recipe/SavedRecipesView"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import type { ChatSession } from "@/server/services/chat-session"
 import type { AvoidanceItem } from "@/server/services/avoidance-guard"
@@ -15,7 +17,10 @@ import type { SavedRecipeListItem } from "@/server/services/saved-recipe"
 
 export const Route = createFileRoute("/")({ component: ChatPage })
 
+type View = "chat" | "favorites"
+
 function ChatPage() {
+  const [view, setView] = useState<View>("chat")
   const [sessions, setSessions] = useState<ChatSession[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
   const [constraints, setConstraints] = useState<AvoidanceItem[]>([])
@@ -24,6 +29,9 @@ function ChatPage() {
     recipeAdjustments: [],
   })
   const [savedRecipes, setSavedRecipes] = useState<SavedRecipeListItem[]>([])
+  const [pendingSavedTitles, setPendingSavedTitles] = useState<Set<string>>(
+    new Set()
+  )
   const [input, setInput] = useState("")
   const pendingSave = useRef(false)
   const loadingSessionId = useRef<string | null>(null)
@@ -35,10 +43,21 @@ function ChatPage() {
       .catch(() => {})
   }, [])
 
+  const loadConstraints = useCallback(() => {
+    fetch("/api/constraints")
+      .then((r) => r.json())
+      .then(setConstraints)
+      .catch(() => {})
+  }, [])
+
   const { messages, setMessages, sendMessage, status } = useChat({
     onFinish: () => {
       pendingSave.current = true
       loadPreferences()
+      loadConstraints()
+      // チャット経由でお気に入り保存（saveRecipe ツール）が走った場合に備え、
+      // 一覧を再取得する。カードの「保存済み」表示・お気に入り一覧が即反映される
+      loadSavedRecipes()
     },
   })
   const isLoading = status === "submitted" || status === "streaming"
@@ -54,11 +73,8 @@ function ChatPage() {
   }, [])
 
   useEffect(() => {
-    fetch("/api/constraints")
-      .then((r) => r.json())
-      .then(setConstraints)
-      .catch(() => {})
-  }, [])
+    loadConstraints()
+  }, [loadConstraints])
 
   const loadSavedRecipes = useCallback(() => {
     fetch("/api/recipes")
@@ -72,7 +88,17 @@ function ChatPage() {
       () => null
     )
     if (res?.ok) {
-      setSavedRecipes((prev) => prev.filter((r) => r.id !== id))
+      setSavedRecipes((prev) => {
+        const deleted = prev.find((r) => r.id === id)
+        if (deleted) {
+          setPendingSavedTitles((titles) => {
+            const next = new Set(titles)
+            next.delete(deleted.normalizedTitle)
+            return next
+          })
+        }
+        return prev.filter((r) => r.id !== id)
+      })
     } else {
       toast.error("削除に失敗しました。もう一度お試しください。")
     }
@@ -121,6 +147,7 @@ function ChatPage() {
     setSessions((prev) => [session, ...prev])
     setActiveId(session.id)
     setMessages([])
+    setView("chat")
   }
 
   async function handleRename(id: string, name: string) {
@@ -214,8 +241,12 @@ function ChatPage() {
   }, [])
 
   const savedTitles = useMemo(
-    () => new Set(savedRecipes.map((r) => r.normalizedTitle)),
-    [savedRecipes]
+    () =>
+      new Set([
+        ...savedRecipes.map((r) => r.normalizedTitle),
+        ...pendingSavedTitles,
+      ]),
+    [savedRecipes, pendingSavedTitles]
   )
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -245,7 +276,10 @@ function ChatPage() {
       <SessionSidebar
         sessions={sessions}
         activeId={activeId}
-        onSelect={loadSession}
+        onSelect={(id) => {
+          loadSession(id)
+          setView("chat")
+        }}
         onCreate={handleCreate}
         onRename={handleRename}
         onDelete={handleDelete}
@@ -256,22 +290,47 @@ function ChatPage() {
         onAddTendency={handleAddTendency}
         onRemoveTendency={handleRemoveTendency}
         onRemoveRecipe={handleRemoveRecipe}
-        savedRecipes={savedRecipes}
-        onRefreshSavedRecipes={loadSavedRecipes}
-        onDeleteSavedRecipe={handleDeleteSavedRecipe}
+        onNavigateFavorites={() => {
+          // チャット経由の保存など、一覧が古い可能性があるので開くたびに再取得する
+          loadSavedRecipes()
+          setView("favorites")
+        }}
       />
       <SidebarInset className="flex h-svh flex-col">
-        <MessageList
-          messages={messages}
-          status={status}
-          savedTitles={savedTitles}
-        />
-        <ChatInput
-          input={input}
-          isLoading={isLoading}
-          onInputChange={setInput}
-          onSubmit={handleSubmit}
-        />
+        {view === "favorites" ? (
+          <>
+            <header className="sticky top-0 z-10 flex items-center gap-3 border-b bg-background/95 px-6 py-4 backdrop-blur">
+              <Star size={20} className="text-yellow-400" fill="currentColor" />
+              <h1 className="text-base font-semibold">お気に入りレシピ</h1>
+            </header>
+            <main className="flex-1 overflow-y-auto p-6">
+              <SavedRecipesView
+                recipes={savedRecipes}
+                onRefresh={loadSavedRecipes}
+                onDeleteRecipe={handleDeleteSavedRecipe}
+              />
+            </main>
+          </>
+        ) : (
+          <>
+            <MessageList
+              messages={messages}
+              status={status}
+              savedTitles={savedTitles}
+              onSaveRecipe={(title: string) => {
+                const normalized = title.trim().replace(/\s+/g, " ")
+                setPendingSavedTitles((prev) => new Set([...prev, normalized]))
+                loadSavedRecipes()
+              }}
+            />
+            <ChatInput
+              input={input}
+              isLoading={isLoading}
+              onInputChange={setInput}
+              onSubmit={handleSubmit}
+            />
+          </>
+        )}
       </SidebarInset>
     </SidebarProvider>
   )

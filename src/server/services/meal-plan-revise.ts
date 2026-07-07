@@ -15,7 +15,7 @@ export type RevisionRequest = {
 
 const replacementRecipeSchema = z.object({
   day: z.number().describe("何日目か（変更対象の日番号をそのまま使う）"),
-  title: z.string().describe("料理名"),
+  title: z.string().describe("料理名。「○日目」などの日付表記を含めないこと"),
   ingredients: z
     .array(
       z.object({
@@ -67,6 +67,7 @@ function buildRevisionPrompt(
     "## 制約",
     `- 変更対象（${targetDaysText}）のみ新しいレシピを考える。それ以外の日は変えない。`,
     "- 手持ち食材を優先して使う。",
+    "- title（料理名）は純粋な料理名のみとする。「○日目」「（残り）」などの補足表記を title に含めないこと。",
     "",
     "## 手持ち食材",
     inventoryText,
@@ -119,12 +120,21 @@ export async function reviseMealPlan(params: {
     ),
   })
 
+  // LLM がプロンプト制約を無視して日付表記を混入させた場合の防御的除去
+  function sanitizeTitle(title: string): string {
+    return title
+      .replace(/^\s*\d+日目\s*/, "")
+      .replace(/[（(]\s*残り\s*[)）]\s*$/, "")
+      .trim()
+  }
+
   // 変更対象日を新レシピで置き換え、それ以外は元のまま保つ
   const replacementByDay = new Map<number, Recipe>(
     object.meals.map((m) => [
       m.day,
       {
         ...m,
+        title: sanitizeTitle(m.title),
         ingredients: m.ingredients.map((i) => ({
           ...i,
           amount: i.amount ?? null,
