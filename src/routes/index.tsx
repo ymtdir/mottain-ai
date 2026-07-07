@@ -295,6 +295,9 @@ function ChatPage() {
           loadSavedRecipes()
           setView("favorites")
         }}
+        onNavigateCalendar={() => {
+          window.location.href = "/calendar"
+        }}
       />
       <SidebarInset className="flex h-svh flex-col">
         {view === "favorites" ? (

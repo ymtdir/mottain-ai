@@ -11,6 +11,7 @@ import {
   SlidersHorizontal,
   HeartCrack,
   Star,
+  CalendarDays,
 } from "lucide-react"
 import {
   Sidebar,
@@ -95,6 +96,7 @@ type Props = {
   onRemoveTendency: (attribute: string) => void
   onRemoveRecipe: (recipeName: string) => void
   onNavigateFavorites: () => void
+  onNavigateCalendar?: () => void
 }
 
 export function SessionSidebar({
@@ -112,6 +114,7 @@ export function SessionSidebar({
   onRemoveTendency,
   onRemoveRecipe,
   onNavigateFavorites,
+  onNavigateCalendar,
 }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState("")
@@ -261,6 +264,17 @@ export function SessionSidebar({
                 <span>お気に入りレシピ</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
+            {onNavigateCalendar && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={onNavigateCalendar}
+                  tooltip="食事カレンダー"
+                >
+                  <CalendarDays size={17} />
+                  <span>食事カレンダー</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
             <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={() => setPrefsOpen(true)}
