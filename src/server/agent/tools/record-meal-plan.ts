@@ -24,13 +24,19 @@ const inputSchema = z.object({
     .array(mealSchema)
     .min(1)
     .describe("承認された献立の各料理。会話中の最新の献立からそのまま転記する"),
+  overwriteDates: z
+    .array(z.string())
+    .optional()
+    .describe(
+      "上書きを承認された日付（YYYY-MM-DD 形式）のリスト。conflicts が返された後、ユーザーが上書きを選んだ日付のみ渡す"
+    ),
 })
 
 export const recordMealPlanTool = tool({
   description:
-    "ユーザーが提案された献立を承認したときに、各料理を食事カレンダーに記録する（meal_logs への INSERT）。承認をはっきり検知したときのみ呼ぶ。提案中・修正中・曖昧な会話では呼ばない。承認日を起点に連続日で記録される。",
+    "ユーザーが提案された献立を承認したときに、各料理を食事カレンダーに記録する（meal_logs への INSERT）。承認をはっきり検知したときのみ呼ぶ。提案中・修正中・曖昧な会話では呼ばない。承認日を起点に連続日で記録される。既存記録との衝突がある場合は conflicts を返すので、ユーザーに上書きするか確認してから overwriteDates を指定して再度呼ぶ。",
   inputSchema,
-  execute: async ({ meals }) => {
+  execute: async ({ meals, overwriteDates }) => {
     const approvalDate = todayInTokyo()
     const contents: { day: number; content: MealLogContent }[] = meals.map(
       (m) => ({
@@ -43,13 +49,37 @@ export const recordMealPlanTool = tool({
         },
       })
     )
-    const records = await recordMeals(contents, approvalDate)
-    const dates = [...new Set(records.map((r) => r.eatenOn))].sort()
+    const { recorded, conflicts } = await recordMeals(
+      contents,
+      approvalDate,
+      overwriteDates ?? []
+    )
+
+    if (conflicts.length > 0) {
+      const conflictLines = conflicts
+        .map(
+          (c) =>
+            `- ${c.date}：既存「${c.existingTitle}」← 新規「${c.newTitle}」`
+        )
+        .join("\n")
+      return {
+        success: recorded.length > 0,
+        recordedCount: recorded.length,
+        conflicts,
+        message:
+          recorded.length > 0
+            ? `${recorded.length}件を記録しました。以下の日付は既存の記録と衝突しています。上書きしますか？\n${conflictLines}`
+            : `以下の日付に既存の記録があります。上書きしますか？\n${conflictLines}`,
+      }
+    }
+
+    const dates = [...new Set(recorded.map((r) => r.eatenOn))].sort()
     return {
       success: true,
-      recordedCount: records.length,
+      recordedCount: recorded.length,
+      conflicts: [],
       range: { from: dates[0], to: dates[dates.length - 1] },
-      message: `${records.length}件の料理を食事カレンダーに記録しました（${dates[0]} 〜 ${dates[dates.length - 1]}）。`,
+      message: `${recorded.length}件の料理を食事カレンダーに記録しました（${dates[0]} 〜 ${dates[dates.length - 1]}）。`,
     }
   },
 })
