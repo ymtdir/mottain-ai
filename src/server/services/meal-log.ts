@@ -1,11 +1,11 @@
 import { db } from "../db/client"
 import { mealLogs } from "../db/schema"
+import type { MealLogContent } from "../db/schema"
 import { eq, and, gte, lt } from "drizzle-orm"
 import { FIXED_USER_ID } from "../db/constants"
 import { ensureUser } from "../db/ensure-user"
 
 export type { MealLogContent } from "../db/schema"
-import type { MealLogContent } from "../db/schema"
 
 export type MealLog = {
   id: string
