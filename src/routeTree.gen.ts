@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiSessionsRouteImport } from './routes/api/sessions'
 import { Route as ApiRecipesRouteImport } from './routes/api/recipes'
@@ -22,11 +21,6 @@ import { Route as ApiRecipesIdRouteImport } from './routes/api/recipes/$id'
 import { Route as ApiMealsIdRouteImport } from './routes/api/meals/$id'
 import { Route as ApiRecipesIdIllustrationRouteImport } from './routes/api/recipes/$id.illustration'
 
-const CalendarRoute = CalendarRouteImport.update({
-  id: '/calendar',
-  path: '/calendar',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -86,7 +80,6 @@ const ApiRecipesIdIllustrationRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/calendar': typeof CalendarRoute
   '/api/chat': typeof ApiChatRoute
   '/api/constraints': typeof ApiConstraintsRoute
   '/api/meals': typeof ApiMealsRouteWithChildren
@@ -100,7 +93,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/calendar': typeof CalendarRoute
   '/api/chat': typeof ApiChatRoute
   '/api/constraints': typeof ApiConstraintsRoute
   '/api/meals': typeof ApiMealsRouteWithChildren
@@ -115,7 +107,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/calendar': typeof CalendarRoute
   '/api/chat': typeof ApiChatRoute
   '/api/constraints': typeof ApiConstraintsRoute
   '/api/meals': typeof ApiMealsRouteWithChildren
@@ -131,7 +122,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/calendar'
     | '/api/chat'
     | '/api/constraints'
     | '/api/meals'
@@ -145,7 +135,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/calendar'
     | '/api/chat'
     | '/api/constraints'
     | '/api/meals'
@@ -159,7 +148,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/calendar'
     | '/api/chat'
     | '/api/constraints'
     | '/api/meals'
@@ -174,7 +162,6 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  CalendarRoute: typeof CalendarRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiConstraintsRoute: typeof ApiConstraintsRoute
   ApiMealsRoute: typeof ApiMealsRouteWithChildren
@@ -185,13 +172,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/calendar': {
-      id: '/calendar'
-      path: '/calendar'
-      fullPath: '/calendar'
-      preLoaderRoute: typeof CalendarRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -322,7 +302,6 @@ const ApiSessionsRouteWithChildren = ApiSessionsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  CalendarRoute: CalendarRoute,
   ApiChatRoute: ApiChatRoute,
   ApiConstraintsRoute: ApiConstraintsRoute,
   ApiMealsRoute: ApiMealsRouteWithChildren,
