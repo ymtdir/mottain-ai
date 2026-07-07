@@ -88,7 +88,17 @@ function ChatPage() {
       () => null
     )
     if (res?.ok) {
-      setSavedRecipes((prev) => prev.filter((r) => r.id !== id))
+      setSavedRecipes((prev) => {
+        const deleted = prev.find((r) => r.id === id)
+        if (deleted) {
+          setPendingSavedTitles((titles) => {
+            const next = new Set(titles)
+            next.delete(deleted.normalizedTitle)
+            return next
+          })
+        }
+        return prev.filter((r) => r.id !== id)
+      })
     } else {
       toast.error("削除に失敗しました。もう一度お試しください。")
     }
