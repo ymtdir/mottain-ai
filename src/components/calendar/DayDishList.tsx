@@ -39,7 +39,6 @@ export function DayDishList({ logs, onDeleteLog, onSaveRecipe }: Props) {
           }}
           onSaveRecipe={(log) => {
             onSaveRecipe(log)
-            setSelected(null)
           }}
         />
       )}
