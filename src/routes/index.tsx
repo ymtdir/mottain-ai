@@ -25,7 +25,7 @@ export const Route = createFileRoute("/")({
   component: ChatPage,
   validateSearch: (search: Record<string, unknown>): { view?: View } => {
     const v = search.view
-    if (v === "favorites" || v === "calendar") return { view: v as View }
+    if (v === "favorites" || v === "calendar") return { view: v }
     return {}
   },
 })
