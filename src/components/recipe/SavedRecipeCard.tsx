@@ -79,8 +79,16 @@ export function SavedRecipeCard({ recipe, onRetry, onDelete }: Props) {
     <>
       <Card
         size="sm"
-        className="cursor-pointer text-sm transition-shadow hover:shadow-lg"
+        role="button"
+        tabIndex={0}
+        className="cursor-pointer text-sm transition-shadow hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
         onClick={() => setOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault()
+            setOpen(true)
+          }
+        }}
       >
         <IllustrationArea
           status={recipe.illustrationStatus}
