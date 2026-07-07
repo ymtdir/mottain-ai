@@ -4,20 +4,23 @@ import { toast } from "sonner"
 import { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import type { FormEvent } from "react"
 import type { UIMessage } from "ai"
-import { Star } from "lucide-react"
+import { Star, CalendarDays } from "lucide-react"
 import { ChatInput } from "@/components/chat/ChatInput"
 import { MessageList } from "@/components/chat/MessageList"
 import { SessionSidebar } from "@/components/chat/SessionSidebar"
 import { SavedRecipesView } from "@/components/recipe/SavedRecipesView"
+import { MonthCalendar } from "@/components/calendar/MonthCalendar"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { todayInTokyo, toYearMonth } from "@/lib/date"
 import type { ChatSession } from "@/server/services/chat-session"
 import type { AvoidanceItem } from "@/server/services/avoidance-guard"
 import type { PreferenceMemory } from "@/server/services/preference"
 import type { SavedRecipeListItem } from "@/server/services/saved-recipe"
+import type { MealLog } from "@/server/services/meal-log"
 
 export const Route = createFileRoute("/")({ component: ChatPage })
 
-type View = "chat" | "favorites"
+type View = "chat" | "favorites" | "calendar"
 
 function ChatPage() {
   const [view, setView] = useState<View>("chat")
@@ -32,6 +35,8 @@ function ChatPage() {
   const [pendingSavedTitles, setPendingSavedTitles] = useState<Set<string>>(
     new Set()
   )
+  const [mealMonth, setMealMonth] = useState(() => toYearMonth(todayInTokyo()))
+  const [mealLogs, setMealLogs] = useState<MealLog[]>([])
   const [input, setInput] = useState("")
   const pendingSave = useRef(false)
   const loadingSessionId = useRef<string | null>(null)
@@ -81,6 +86,46 @@ function ChatPage() {
       .then((r) => r.json())
       .then((data: SavedRecipeListItem[]) => setSavedRecipes(data))
       .catch(() => {})
+  }, [])
+
+  const loadMealLogs = useCallback((m: string, signal?: AbortSignal) => {
+    fetch(`/api/meals?month=${m}`, { signal })
+      .then((r) => r.json())
+      .then((data: MealLog[]) => setMealLogs(data))
+      .catch(() => {})
+  }, [])
+
+  // カレンダー表示中のみ、月の変更に追従して記録を取得する
+  useEffect(() => {
+    if (view !== "calendar") return
+    const controller = new AbortController()
+    loadMealLogs(mealMonth, controller.signal)
+    return () => controller.abort()
+  }, [view, mealMonth, loadMealLogs])
+
+  function prevMonth() {
+    const [y, m] = mealMonth.split("-").map(Number)
+    const pm = m === 1 ? 12 : m - 1
+    const py = m === 1 ? y - 1 : y
+    setMealMonth(`${py}-${String(pm).padStart(2, "0")}`)
+  }
+
+  function nextMonth() {
+    const [y, m] = mealMonth.split("-").map(Number)
+    const nm = m === 12 ? 1 : m + 1
+    const ny = m === 12 ? y + 1 : y
+    setMealMonth(`${ny}-${String(nm).padStart(2, "0")}`)
+  }
+
+  const handleDeleteMealLog = useCallback(async (id: string) => {
+    const res = await fetch(`/api/meals/${id}`, { method: "DELETE" }).catch(
+      () => null
+    )
+    if (res?.ok) {
+      setMealLogs((prev) => prev.filter((l) => l.id !== id))
+    } else {
+      toast.error("削除に失敗しました。もう一度お試しください。")
+    }
   }, [])
 
   const handleDeleteSavedRecipe = useCallback(async (id: string) => {
@@ -296,7 +341,7 @@ function ChatPage() {
           setView("favorites")
         }}
         onNavigateCalendar={() => {
-          window.location.href = "/calendar"
+          setView("calendar")
         }}
       />
       <SidebarInset className="flex h-svh flex-col">
@@ -311,6 +356,23 @@ function ChatPage() {
                 recipes={savedRecipes}
                 onRefresh={loadSavedRecipes}
                 onDeleteRecipe={handleDeleteSavedRecipe}
+              />
+            </main>
+          </>
+        ) : view === "calendar" ? (
+          <>
+            <header className="sticky top-0 z-10 flex items-center gap-3 border-b bg-background/95 px-6 py-4 backdrop-blur">
+              <CalendarDays size={20} className="text-primary" />
+              <h1 className="text-base font-semibold">食事カレンダー</h1>
+            </header>
+            <main className="flex-1 overflow-y-auto p-6">
+              <MonthCalendar
+                month={mealMonth}
+                logs={mealLogs}
+                onPrevMonth={prevMonth}
+                onNextMonth={nextMonth}
+                onDeleteLog={handleDeleteMealLog}
+                onSaveRecipe={() => loadSavedRecipes()}
               />
             </main>
           </>
