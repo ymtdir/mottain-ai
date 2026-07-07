@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import type { MealLog } from "@/server/services/meal-log"
+import { todayInTokyo, toDateString } from "@/lib/date"
 import { DayDishList } from "./DayDishList"
 
 type Props = {
@@ -29,10 +30,7 @@ function formatMonth(month: string): string {
 }
 
 function todayString(): string {
-  const d = new Date(
-    new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" })
-  )
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+  return toDateString(todayInTokyo())
 }
 
 export function MonthCalendar({
