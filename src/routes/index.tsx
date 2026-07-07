@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useChat } from "@ai-sdk/react"
 import { toast } from "sonner"
-import { useState, useEffect, useCallback, useRef, useMemo } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import type { FormEvent } from "react"
 import type { UIMessage } from "ai"
 import { ChatInput } from "@/components/chat/ChatInput"
@@ -45,9 +45,6 @@ function ChatPage() {
     recipeAdjustments: [],
   })
   const [savedRecipes, setSavedRecipes] = useState<SavedRecipeListItem[]>([])
-  const [pendingSavedTitles, setPendingSavedTitles] = useState<Set<string>>(
-    new Set()
-  )
   const [mealMonth, setMealMonth] = useState(() => toYearMonth(todayInTokyo()))
   const [mealLogs, setMealLogs] = useState<MealLog[]>([])
   const [input, setInput] = useState("")
@@ -73,9 +70,6 @@ function ChatPage() {
       pendingSave.current = true
       loadPreferences()
       loadConstraints()
-      // チャット経由でお気に入り保存（saveRecipe ツール）が走った場合に備え、
-      // 一覧を再取得する。カードの「保存済み」表示・お気に入り一覧が即反映される
-      loadSavedRecipes()
     },
   })
   const isLoading = status === "submitted" || status === "streaming"
@@ -146,17 +140,7 @@ function ChatPage() {
       () => null
     )
     if (res?.ok) {
-      setSavedRecipes((prev) => {
-        const deleted = prev.find((r) => r.id === id)
-        if (deleted) {
-          setPendingSavedTitles((titles) => {
-            const next = new Set(titles)
-            next.delete(deleted.normalizedTitle)
-            return next
-          })
-        }
-        return prev.filter((r) => r.id !== id)
-      })
+      setSavedRecipes((prev) => prev.filter((r) => r.id !== id))
     } else {
       toast.error("削除に失敗しました。もう一度お試しください。")
     }
@@ -298,13 +282,28 @@ function ChatPage() {
     }))
   }, [])
 
-  const savedTitles = useMemo(
-    () =>
-      new Set([
-        ...savedRecipes.map((r) => r.normalizedTitle),
-        ...pendingSavedTitles,
-      ]),
-    [savedRecipes, pendingSavedTitles]
+  const handleCommentFromCalendar = useCallback(
+    async (
+      log: import("@/server/services/meal-log").MealLog,
+      comment: string
+    ) => {
+      let sid = activeId
+      if (!sid) {
+        const res = await fetch("/api/sessions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        })
+        const session: ChatSession = await res.json()
+        setSessions((prev) => [session, ...prev])
+        setActiveId(session.id)
+        sid = session.id
+      }
+      setView("chat")
+      const text = `${log.eatenOn}に記録した「${log.content.title}」について: ${comment}`
+      await sendMessage({ text })
+    },
+    [activeId, sendMessage]
   )
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -376,20 +375,12 @@ function ChatPage() {
               onNextMonth={nextMonth}
               onDeleteLog={handleDeleteMealLog}
               onSaveRecipe={() => loadSavedRecipes()}
+              onComment={handleCommentFromCalendar}
             />
           </main>
         ) : (
           <>
-            <MessageList
-              messages={messages}
-              status={status}
-              savedTitles={savedTitles}
-              onSaveRecipe={(title: string) => {
-                const normalized = title.trim().replace(/\s+/g, " ")
-                setPendingSavedTitles((prev) => new Set([...prev, normalized]))
-                loadSavedRecipes()
-              }}
-            />
+            <MessageList messages={messages} status={status} />
             <ChatInput
               input={input}
               isLoading={isLoading}

@@ -6,9 +6,15 @@ type Props = {
   logs: MealLog[]
   onDeleteLog: (id: string) => void
   onSaveRecipe: (log: MealLog) => void
+  onComment: (log: MealLog, comment: string) => void
 }
 
-export function DayDishList({ logs, onDeleteLog, onSaveRecipe }: Props) {
+export function DayDishList({
+  logs,
+  onDeleteLog,
+  onSaveRecipe,
+  onComment,
+}: Props) {
   const [selected, setSelected] = useState<MealLog | null>(null)
 
   return (
@@ -40,6 +46,7 @@ export function DayDishList({ logs, onDeleteLog, onSaveRecipe }: Props) {
           onSaveRecipe={(log) => {
             onSaveRecipe(log)
           }}
+          onComment={onComment}
         />
       )}
     </>

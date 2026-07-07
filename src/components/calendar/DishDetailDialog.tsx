@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Trash2, Heart } from "lucide-react"
+import { Trash2, Heart, MessageCircle } from "lucide-react"
 import { toast } from "sonner"
 import {
   Dialog,
@@ -26,6 +26,7 @@ type Props = {
   onOpenChange: (open: boolean) => void
   onDelete: (id: string) => void
   onSaveRecipe: (log: MealLog) => void
+  onComment: (log: MealLog, comment: string) => void
 }
 
 export function DishDetailDialog({
@@ -34,9 +35,11 @@ export function DishDetailDialog({
   onOpenChange,
   onDelete,
   onSaveRecipe,
+  onComment,
 }: Props) {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [comment, setComment] = useState("")
 
   async function handleSaveRecipe() {
     if (saving || saved) return
@@ -59,6 +62,13 @@ export function DishDetailDialog({
     } finally {
       setSaving(false)
     }
+  }
+
+  function handleSendComment() {
+    const text = comment.trim()
+    if (!text) return
+    onComment(log, text)
+    onOpenChange(false)
   }
 
   const { content } = log
@@ -98,46 +108,79 @@ export function DishDetailDialog({
             </div>
           )}
 
-          <div className="flex items-center justify-between border-t pt-3">
-            <button
-              onClick={handleSaveRecipe}
-              disabled={saving || saved}
-              className={`flex items-center gap-1 rounded px-2 py-1 text-xs transition-colors ${
-                saved
-                  ? "cursor-default text-rose-500"
-                  : "text-muted-foreground hover:bg-rose-50 hover:text-rose-500"
-              }`}
-            >
-              <Heart size={13} fill={saved ? "currentColor" : "none"} />
-              {saved ? "保存済み" : saving ? "保存中..." : "お気に入りに登録"}
-            </button>
+          <div className="flex flex-col gap-2 border-t pt-3">
+            <p className="text-xs font-medium text-foreground">
+              AIにコメントを送る
+            </p>
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault()
+                  handleSendComment()
+                }
+              }}
+              placeholder="「もう少し簡単なアレンジが知りたい」など..."
+              rows={2}
+              className="w-full resize-none rounded-md border bg-background px-3 py-2 text-xs placeholder:text-muted-foreground focus:ring-1 focus:ring-ring focus:outline-none"
+            />
+            <div className="flex items-center justify-between">
+              <button
+                onClick={handleSendComment}
+                disabled={!comment.trim()}
+                className="flex items-center gap-1 rounded px-2 py-1 text-xs text-muted-foreground hover:bg-accent/60 hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <MessageCircle size={13} />
+                チャットに送る
+              </button>
 
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <button className="flex items-center gap-1 rounded px-2 py-1 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
-                  <Trash2 size={13} />
-                  記録を削除
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={handleSaveRecipe}
+                  disabled={saving || saved}
+                  className={`flex items-center gap-1 rounded px-2 py-1 text-xs transition-colors ${
+                    saved
+                      ? "cursor-default text-rose-500"
+                      : "text-muted-foreground hover:bg-rose-50 hover:text-rose-500"
+                  }`}
+                >
+                  <Heart size={13} fill={saved ? "currentColor" : "none"} />
+                  {saved
+                    ? "保存済み"
+                    : saving
+                      ? "保存中..."
+                      : "お気に入りに登録"}
                 </button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>記録を削除しますか？</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    「{content.title}
-                    」の記録を削除します。この操作は取り消せません。
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => onDelete(log.id)}
-                    className="text-destructive-foreground bg-destructive hover:bg-destructive/90"
-                  >
-                    削除
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button className="flex items-center gap-1 rounded px-2 py-1 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
+                      <Trash2 size={13} />
+                      記録を削除
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>記録を削除しますか？</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        「{content.title}
+                        」の記録を削除します。この操作は取り消せません。
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => onDelete(log.id)}
+                        className="text-destructive-foreground bg-destructive hover:bg-destructive/90"
+                      >
+                        削除
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
           </div>
         </div>
       </DialogContent>
