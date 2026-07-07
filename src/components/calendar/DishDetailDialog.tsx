@@ -82,7 +82,13 @@ export function DishDetailDialog({
         return
       }
       setComment("")
-      toast.success("コメントありがとうございます！食の好みに保存し、次回の献立の参考にします。")
+      toast.success(
+        <>
+          コメントありがとうございます！
+          <br />
+          食の好みに保存し、次回の献立の参考にします。
+        </>
+      )
     } catch {
       toast.error("通信エラーが発生しました。")
     } finally {
