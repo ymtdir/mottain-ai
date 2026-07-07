@@ -105,6 +105,13 @@ export const savedRecipes = pgTable(
   ]
 )
 
+export type MealLogContent = {
+  title: string
+  ingredients: { name: string; amount: string | null }[]
+  steps: string[]
+  notes: string | null
+}
+
 // 食事記録（承認された献立を承認日起点の連続日にスナップショット保持）
 export const mealLogs = pgTable(
   "meal_logs",
@@ -114,8 +121,7 @@ export const mealLogs = pgTable(
       .notNull()
       .references(() => users.id),
     eatenOn: date("eaten_on").notNull(),
-    // { title, ingredients: {name, amount|null}[], steps: string[], notes: string|null }
-    content: jsonb("content").notNull(),
+    content: jsonb("content").$type<MealLogContent>().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
