@@ -18,6 +18,7 @@ import { Route as ApiConstraintsRouteImport } from './routes/api/constraints'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiSessionsSessionIdRouteImport } from './routes/api/sessions/$sessionId'
 import { Route as ApiRecipesIdRouteImport } from './routes/api/recipes/$id'
+import { Route as ApiMealsCommentRouteImport } from './routes/api/meals/comment'
 import { Route as ApiMealsIdRouteImport } from './routes/api/meals/$id'
 import { Route as ApiRecipesIdIllustrationRouteImport } from './routes/api/recipes/$id.illustration'
 
@@ -66,6 +67,11 @@ const ApiRecipesIdRoute = ApiRecipesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiRecipesRoute,
 } as any)
+const ApiMealsCommentRoute = ApiMealsCommentRouteImport.update({
+  id: '/comment',
+  path: '/comment',
+  getParentRoute: () => ApiMealsRoute,
+} as any)
 const ApiMealsIdRoute = ApiMealsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/api/recipes': typeof ApiRecipesRouteWithChildren
   '/api/sessions': typeof ApiSessionsRouteWithChildren
   '/api/meals/$id': typeof ApiMealsIdRoute
+  '/api/meals/comment': typeof ApiMealsCommentRoute
   '/api/recipes/$id': typeof ApiRecipesIdRouteWithChildren
   '/api/sessions/$sessionId': typeof ApiSessionsSessionIdRoute
   '/api/recipes/$id/illustration': typeof ApiRecipesIdIllustrationRoute
@@ -100,6 +107,7 @@ export interface FileRoutesByTo {
   '/api/recipes': typeof ApiRecipesRouteWithChildren
   '/api/sessions': typeof ApiSessionsRouteWithChildren
   '/api/meals/$id': typeof ApiMealsIdRoute
+  '/api/meals/comment': typeof ApiMealsCommentRoute
   '/api/recipes/$id': typeof ApiRecipesIdRouteWithChildren
   '/api/sessions/$sessionId': typeof ApiSessionsSessionIdRoute
   '/api/recipes/$id/illustration': typeof ApiRecipesIdIllustrationRoute
@@ -114,6 +122,7 @@ export interface FileRoutesById {
   '/api/recipes': typeof ApiRecipesRouteWithChildren
   '/api/sessions': typeof ApiSessionsRouteWithChildren
   '/api/meals/$id': typeof ApiMealsIdRoute
+  '/api/meals/comment': typeof ApiMealsCommentRoute
   '/api/recipes/$id': typeof ApiRecipesIdRouteWithChildren
   '/api/sessions/$sessionId': typeof ApiSessionsSessionIdRoute
   '/api/recipes/$id/illustration': typeof ApiRecipesIdIllustrationRoute
@@ -129,6 +138,7 @@ export interface FileRouteTypes {
     | '/api/recipes'
     | '/api/sessions'
     | '/api/meals/$id'
+    | '/api/meals/comment'
     | '/api/recipes/$id'
     | '/api/sessions/$sessionId'
     | '/api/recipes/$id/illustration'
@@ -142,6 +152,7 @@ export interface FileRouteTypes {
     | '/api/recipes'
     | '/api/sessions'
     | '/api/meals/$id'
+    | '/api/meals/comment'
     | '/api/recipes/$id'
     | '/api/sessions/$sessionId'
     | '/api/recipes/$id/illustration'
@@ -155,6 +166,7 @@ export interface FileRouteTypes {
     | '/api/recipes'
     | '/api/sessions'
     | '/api/meals/$id'
+    | '/api/meals/comment'
     | '/api/recipes/$id'
     | '/api/sessions/$sessionId'
     | '/api/recipes/$id/illustration'
@@ -235,6 +247,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRecipesIdRouteImport
       parentRoute: typeof ApiRecipesRoute
     }
+    '/api/meals/comment': {
+      id: '/api/meals/comment'
+      path: '/comment'
+      fullPath: '/api/meals/comment'
+      preLoaderRoute: typeof ApiMealsCommentRouteImport
+      parentRoute: typeof ApiMealsRoute
+    }
     '/api/meals/$id': {
       id: '/api/meals/$id'
       path: '/$id'
@@ -254,10 +273,12 @@ declare module '@tanstack/react-router' {
 
 interface ApiMealsRouteChildren {
   ApiMealsIdRoute: typeof ApiMealsIdRoute
+  ApiMealsCommentRoute: typeof ApiMealsCommentRoute
 }
 
 const ApiMealsRouteChildren: ApiMealsRouteChildren = {
   ApiMealsIdRoute: ApiMealsIdRoute,
+  ApiMealsCommentRoute: ApiMealsCommentRoute,
 }
 
 const ApiMealsRouteWithChildren = ApiMealsRoute._addFileChildren(

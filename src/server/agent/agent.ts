@@ -7,7 +7,6 @@ import { generateMealPlanTool } from "./tools/generate-meal-plan"
 import { updateConstraintsTool } from "./tools/update-constraints"
 import { reviseMealPlanTool } from "./tools/revise-meal-plan"
 import { learnPreferenceTool } from "./tools/learn-preference"
-import { saveRecipeTool } from "./tools/save-recipe"
 import { recordMealPlanTool } from "./tools/record-meal-plan"
 
 /** ツールの使い方をエージェントに指示する運用プロンプト（US1〜US4） */
@@ -15,13 +14,13 @@ const OPERATION_INSTRUCTIONS = `
 ## 進め方
 1. ユーザーが手持ち食材を伝えたら、interpretInventory ツールで在庫を構造化し、読み取った内容を簡潔に確認する。
 2. 献立の希望日数が不明なら尋ねる。在庫と日数が揃ったら generateMealPlan ツールで献立と買い物リストを生成する。
-3. 生成後は、献立と買い物リストは画面に表示されるため内容を繰り返さない。「作成しました」の一言と、dayNote がある場合のみその内容を添える。
+3. 生成後は、献立と買い物リストは画面に表示されるため内容を繰り返さない。「作成しました」の一言と、dayNote がある場合のみその内容を添える。最後に必ず「この献立を確定してよいですか？」と聞いて、ユーザーの承認を促す。これが会話のゴールである。
 4. violationNote がある場合のみ、回避できなかった旨と代替案を丁寧に伝える。それ以外の場合は violationNote に言及しない。
 5. ユーザーがアレルギー・苦手食材を伝えたら、updateConstraints ツールで登録する（add / remove / replace）。
 6. ユーザーが献立の変更を依頼したら（「○日目を魚料理に」「もっと簡単に」など）、reviseMealPlan ツールで対象日だけを差し替える。変更理由に好み（「辛いのが苦手」など）が含まれていれば preferenceNote に抽出して渡す。
 7. ユーザーが好み・味の感想を述べたら（「辛いのが苦手」「この生姜焼きはしょっぱかった」など）、learnPreference ツールで記録する。抽象的な感想も具体調整に翻訳して永続化する。
-8. ユーザーが献立の料理を「お気に入りに保存して」と指示したら（「肉じゃがをお気に入りに登録して」など）、saveRecipe ツールで保存する。材料・手順は直近の献立（generateMealPlan / reviseMealPlan の結果）から該当レシピをそのまま転記する。creation せず、会話中に該当レシピが見当たらなければユーザーに確認する。これは味の好みを記録する learnPreference とは別物なので混同しない。
-9. ユーザーが提案された献立をはっきり承認したら（「これで作ります」「決まりです」「OK」など）、recordMealPlan ツールで食事カレンダーに記録する。承認された献立の全料理を meals に渡す。提案中・修正中・曖昧な会話では呼ばない。記録後は「カレンダーに記録しました」と簡潔に伝える。
+8. ユーザーが確定の意思をはっきり示したら（「はい」「OK」「これで作ります」「確定して」など）、recordMealPlan ツールで食事カレンダーに記録する。承認された献立の全料理を meals に渡す。修正依頼・曖昧な返答・「どうしようかな」といった迷いの言葉では呼ばない。記録後は「カレンダーに記録しました」と簡潔に伝える。
+   - recordMealPlan が conflicts を返した場合は、衝突している各日付について「X月Y日は既に「既存料理名」が記録されています。新しい「新料理名」に上書きしますか？」とユーザーに確認する。ユーザーが上書きを選んだ日付を overwriteDates に指定して recordMealPlan を再度呼ぶ。上書きしない日付はスキップする。
 
 ## 曖昧・不完全な入力の扱い方（FR-026）
 - 食材名が不明瞭（「お肉」「野菜」など）: 一般的な代表食材（「鶏肉」「キャベツ」など）を前提に置き、「○○として扱いました」のように明示する。
@@ -44,7 +43,6 @@ export async function runAgent(messages: ModelMessage[]) {
       updateConstraints: updateConstraintsTool,
       reviseMealPlan: reviseMealPlanTool,
       learnPreference: learnPreferenceTool,
-      saveRecipe: saveRecipeTool,
       recordMealPlan: recordMealPlanTool,
     },
     // ツール呼び出し後にモデルが応答を続けられるよう複数ステップを許可する

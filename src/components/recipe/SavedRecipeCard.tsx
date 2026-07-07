@@ -157,7 +157,7 @@ export function SavedRecipeCard({ recipe, onRetry, onDelete }: Props) {
                         onDelete()
                         setOpen(false)
                       }}
-                      className="text-destructive-foreground bg-destructive hover:bg-destructive/90"
+                      variant="destructive"
                     >
                       削除
                     </AlertDialogAction>

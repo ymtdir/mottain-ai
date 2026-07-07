@@ -1,7 +1,7 @@
 import { db } from "../db/client"
 import { mealLogs } from "../db/schema"
 import type { MealLogContent } from "../db/schema"
-import { eq, and, gte, lt } from "drizzle-orm"
+import { eq, and, gte, lt, inArray } from "drizzle-orm"
 import { FIXED_USER_ID } from "../db/constants"
 import { ensureUser } from "../db/ensure-user"
 
@@ -13,6 +13,17 @@ export type MealLog = {
   eatenOn: string
   content: MealLogContent
   createdAt: Date
+}
+
+export type MealConflict = {
+  date: string
+  existingTitle: string
+  newTitle: string
+}
+
+export type RecordMealsResult = {
+  recorded: MealLog[]
+  conflicts: MealConflict[]
 }
 
 type MealLogRow = typeof mealLogs.$inferSelect
@@ -79,20 +90,74 @@ export async function listMealLogs(month: string): Promise<MealLog[]> {
   return rows.map(toMealLog)
 }
 
-/** 承認された献立を meal_logs に記録する */
+/**
+ * 承認された献立を meal_logs に記録する。
+ *
+ * - 既存レコードがある日付は conflicts として返し、挿入をスキップする。
+ * - overwriteDates に含まれる日付は既存レコードを削除してから挿入（上書き）する。
+ */
 export async function recordMeals(
   meals: { day: number; content: MealLogContent }[],
-  approvalDate: Date
-): Promise<MealLog[]> {
+  approvalDate: Date,
+  overwriteDates: string[] = []
+): Promise<RecordMealsResult> {
   await ensureUser()
   const dates = assignDates(meals, approvalDate)
-  const values = meals.map((m, i) => ({
-    userId: FIXED_USER_ID,
-    eatenOn: dates[i],
-    content: m.content,
-  }))
-  const rows = await db.insert(mealLogs).values(values).returning()
-  return rows.map(toMealLog)
+
+  // 挿入対象の日付に既存レコードがあるか確認
+  const existingRows = await db
+    .select()
+    .from(mealLogs)
+    .where(
+      and(eq(mealLogs.userId, FIXED_USER_ID), inArray(mealLogs.eatenOn, dates))
+    )
+  const existingByDate = new Map(existingRows.map((r) => [r.eatenOn, r]))
+
+  // 上書き対象の既存レコードを削除
+  const datesToDelete = overwriteDates.filter((d) => existingByDate.has(d))
+  if (datesToDelete.length > 0) {
+    await db
+      .delete(mealLogs)
+      .where(
+        and(
+          eq(mealLogs.userId, FIXED_USER_ID),
+          inArray(mealLogs.eatenOn, datesToDelete)
+        )
+      )
+    for (const d of datesToDelete) existingByDate.delete(d)
+  }
+
+  const conflicts: MealConflict[] = []
+  const toInsert: {
+    userId: string
+    eatenOn: string
+    content: MealLogContent
+  }[] = []
+
+  for (let i = 0; i < meals.length; i++) {
+    const date = dates[i]
+    const existing = existingByDate.get(date)
+    if (existing) {
+      conflicts.push({
+        date,
+        existingTitle: existing.content.title,
+        newTitle: meals[i].content.title,
+      })
+    } else {
+      toInsert.push({
+        userId: FIXED_USER_ID,
+        eatenOn: date,
+        content: meals[i].content,
+      })
+    }
+  }
+
+  const recorded =
+    toInsert.length > 0
+      ? (await db.insert(mealLogs).values(toInsert).returning()).map(toMealLog)
+      : []
+
+  return { recorded, conflicts }
 }
 
 /** 食事記録を削除する（存在しなければ no-op） */
