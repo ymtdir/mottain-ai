@@ -8,6 +8,8 @@ locals {
     "iamcredentials.googleapis.com",
     "sts.googleapis.com",
     "sqladmin.googleapis.com",
+    "secretmanager.googleapis.com",
+    "aiplatform.googleapis.com",
   ]
 }
 
@@ -35,6 +37,13 @@ resource "google_service_account" "runtime" {
   display_name = "Cloud Run runtime SA (${var.service_name})"
 }
 
+# 実行 SA が Vertex AI（Gemini）を呼び出せるようにする
+resource "google_project_iam_member" "runtime_vertex_ai" {
+  project = var.project_id
+  role    = "roles/aiplatform.user"
+  member  = "serviceAccount:${google_service_account.runtime.email}"
+}
+
 # Cloud Run サービス。初回は公開プレースホルダイメージで作成し、
 # 以降のイメージ更新は CD（gcloud run deploy）に任せる。
 resource "google_cloud_run_v2_service" "app" {
@@ -54,8 +63,9 @@ resource "google_cloud_run_v2_service" "app" {
   }
 
   lifecycle {
-    # イメージは CD が更新するため Terraform では追従しない
-    ignore_changes = [template[0].containers[0].image]
+    # 実行時構成（イメージ・環境変数・Cloud SQL 接続など）は CD の
+    # gcloud run deploy が管理するため Terraform では追従しない
+    ignore_changes = [template, client, client_version, scaling]
   }
 
   depends_on = [google_project_service.services]
@@ -130,19 +140,130 @@ resource "google_service_account_iam_member" "deployer_wif" {
   member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${var.github_repository}"
 }
 
-# ---- DB（必要になったら有効化）----
+# ---- DB（enable_cloud_sql = true で有効化）----
 
 resource "google_sql_database_instance" "postgres" {
   count = var.enable_cloud_sql ? 1 : 0
 
-  name                = "${var.service_name}-pg"
-  database_version    = var.db_version
-  region              = var.region
-  deletion_protection = false
+  name             = "${var.service_name}-pg"
+  database_version = var.db_version
+  region           = var.region
+
+  # 本番データを保持するため terraform destroy から保護する
+  deletion_protection = true
 
   settings {
-    tier = var.db_tier
+    # db-f1-micro などの共有コアは ENTERPRISE エディションのみ対応
+    # （デフォルトの ENTERPRISE_PLUS では使えない）
+    edition = "ENTERPRISE"
+    tier    = var.db_tier
+
+    backup_configuration {
+      enabled = true
+    }
   }
 
   depends_on = [google_project_service.services]
+}
+
+resource "google_sql_database" "app" {
+  count = var.enable_cloud_sql ? 1 : 0
+
+  name     = var.db_name
+  instance = google_sql_database_instance.postgres[0].name
+}
+
+# URL に埋め込むためエンコード不要な英数字のみで生成する
+resource "random_password" "db" {
+  count = var.enable_cloud_sql ? 1 : 0
+
+  length  = 32
+  special = false
+}
+
+resource "google_sql_user" "app" {
+  count = var.enable_cloud_sql ? 1 : 0
+
+  name     = "app"
+  instance = google_sql_database_instance.postgres[0].name
+  password = random_password.db[0].result
+}
+
+# ---- Secret Manager ----
+
+# Cloud Run 用の接続 URL。実際の接続先は環境変数 DB_SOCKET_PATH
+# （Cloud SQL unix ソケット）でアプリ側が上書きするため、ホスト部はプレースホルダ
+resource "google_secret_manager_secret" "database_url" {
+  count = var.enable_cloud_sql ? 1 : 0
+
+  secret_id = "database-url"
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.services]
+}
+
+resource "google_secret_manager_secret_version" "database_url" {
+  count = var.enable_cloud_sql ? 1 : 0
+
+  secret      = google_secret_manager_secret.database_url[0].id
+  secret_data = "postgresql://${google_sql_user.app[0].name}:${random_password.db[0].result}@localhost:5432/${google_sql_database.app[0].name}"
+}
+
+# CD のマイグレーション用（Cloud SQL Auth Proxy 経由で URL を組み立てる）
+resource "google_secret_manager_secret" "database_password" {
+  count = var.enable_cloud_sql ? 1 : 0
+
+  secret_id = "database-password"
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.services]
+}
+
+resource "google_secret_manager_secret_version" "database_password" {
+  count = var.enable_cloud_sql ? 1 : 0
+
+  secret      = google_secret_manager_secret.database_password[0].id
+  secret_data = random_password.db[0].result
+}
+
+# ---- DB 関連の IAM ----
+
+# 実行 SA: Cloud SQL への接続と DATABASE_URL の読み取り
+resource "google_project_iam_member" "runtime_cloudsql" {
+  count = var.enable_cloud_sql ? 1 : 0
+
+  project = var.project_id
+  role    = "roles/cloudsql.client"
+  member  = "serviceAccount:${google_service_account.runtime.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "runtime_database_url" {
+  count = var.enable_cloud_sql ? 1 : 0
+
+  secret_id = google_secret_manager_secret.database_url[0].id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.runtime.email}"
+}
+
+# デプロイ SA: マイグレーション実行のための接続とパスワード読み取り
+resource "google_project_iam_member" "deployer_cloudsql" {
+  count = var.enable_cloud_sql ? 1 : 0
+
+  project = var.project_id
+  role    = "roles/cloudsql.client"
+  member  = "serviceAccount:${google_service_account.deployer.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "deployer_database_password" {
+  count = var.enable_cloud_sql ? 1 : 0
+
+  secret_id = google_secret_manager_secret.database_password[0].id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.deployer.email}"
 }
