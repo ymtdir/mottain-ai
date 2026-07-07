@@ -12,7 +12,8 @@
     "check": "prettier --check \"**/*.{ts,tsx,js,jsx}\"",
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "db:proxy": "cloud-sql-proxy mottain-ai:asia-northeast1:mottain-ai-pg --port 5432"
   },
   "dependencies": {
     "@ai-sdk/google-vertex": "^5.0.8",
