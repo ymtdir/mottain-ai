@@ -55,6 +55,9 @@ function ChatPage() {
       pendingSave.current = true
       loadPreferences()
       loadConstraints()
+      // チャット経由でお気に入り保存（saveRecipe ツール）が走った場合に備え、
+      // 一覧を再取得する。カードの「保存済み」表示・お気に入り一覧が即反映される
+      loadSavedRecipes()
     },
   })
   const isLoading = status === "submitted" || status === "streaming"
@@ -277,7 +280,11 @@ function ChatPage() {
         onAddTendency={handleAddTendency}
         onRemoveTendency={handleRemoveTendency}
         onRemoveRecipe={handleRemoveRecipe}
-        onNavigateFavorites={() => setView("favorites")}
+        onNavigateFavorites={() => {
+          // チャット経由の保存など、一覧が古い可能性があるので開くたびに再取得する
+          loadSavedRecipes()
+          setView("favorites")
+        }}
       />
       <SidebarInset className="flex h-svh flex-col">
         {view === "favorites" ? (
