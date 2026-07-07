@@ -8,6 +8,7 @@ import { ChatInput } from "@/components/chat/ChatInput"
 import { MessageList } from "@/components/chat/MessageList"
 import { SessionSidebar } from "@/components/chat/SessionSidebar"
 import { AppHeader } from "@/components/layout/AppHeader"
+import type { AppTab } from "@/components/layout/AppHeader"
 import { SavedRecipesView } from "@/components/recipe/SavedRecipesView"
 import { MonthCalendar } from "@/components/calendar/MonthCalendar"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
@@ -18,13 +19,13 @@ import type { PreferenceMemory } from "@/server/services/preference"
 import type { SavedRecipeListItem } from "@/server/services/saved-recipe"
 import type { MealLog } from "@/server/services/meal-log"
 
-type View = "chat" | "favorites" | "calendar"
+type View = AppTab
 
 export const Route = createFileRoute("/")({
   component: ChatPage,
   validateSearch: (search: Record<string, unknown>): { view?: View } => {
     const v = search.view
-    if (v === "favorites" || v === "calendar") return { view: v }
+    if (v === "favorites" || v === "calendar") return { view: v as View }
     return {}
   },
 })
@@ -32,6 +33,10 @@ export const Route = createFileRoute("/")({
 function ChatPage() {
   const { view: viewParam } = Route.useSearch()
   const [view, setView] = useState<View>(viewParam ?? "chat")
+
+  useEffect(() => {
+    if (viewParam) setView(viewParam)
+  }, [viewParam])
   const [sessions, setSessions] = useState<ChatSession[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
   const [constraints, setConstraints] = useState<AvoidanceItem[]>([])
