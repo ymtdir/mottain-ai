@@ -1,0 +1,23 @@
+# 依存物・ビルド成果物（イメージ内で pnpm install / build する）
+node_modules
+dist
+
+# CD のマイグレーションステップがランナー上に残すもの
+cloud-sql-proxy
+
+# リポジトリ運用・インフラ（イメージに不要）
+.git
+.github
+infra
+specs
+docs
+.claude
+.specify
+drizzle
+
+# ローカル設定
+.env*
+docker-compose.yaml
+Dockerfile
+.dockerignore
+*.md

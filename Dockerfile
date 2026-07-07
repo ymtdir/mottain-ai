@@ -1,4 +1,6 @@
 FROM node:22-alpine AS base
+# pnpm を非対話モードで動かす（TTY 前提のプロンプトで落ちないように）
+ENV CI=true
 RUN npm install -g pnpm
 
 FROM base AS builder
