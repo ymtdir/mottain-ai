@@ -145,16 +145,22 @@ resource "google_service_account_iam_member" "deployer_wif" {
 resource "google_sql_database_instance" "postgres" {
   count = var.enable_cloud_sql ? 1 : 0
 
-  name                = "${var.service_name}-pg"
-  database_version    = var.db_version
-  region              = var.region
-  deletion_protection = false
+  name             = "${var.service_name}-pg"
+  database_version = var.db_version
+  region           = var.region
+
+  # 本番データを保持するため terraform destroy から保護する
+  deletion_protection = true
 
   settings {
     # db-f1-micro などの共有コアは ENTERPRISE エディションのみ対応
     # （デフォルトの ENTERPRISE_PLUS では使えない）
     edition = "ENTERPRISE"
     tier    = var.db_tier
+
+    backup_configuration {
+      enabled = true
+    }
   }
 
   depends_on = [google_project_service.services]

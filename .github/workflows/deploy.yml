@@ -51,7 +51,12 @@ jobs:
           curl -sSfL -o cloud-sql-proxy "https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/${CLOUD_SQL_PROXY_VERSION}/cloud-sql-proxy.linux.amd64"
           chmod +x cloud-sql-proxy
           ./cloud-sql-proxy "${PROJECT_ID}:${REGION}:${SERVICE}-pg" --port 5432 &
-          sleep 5
+          for i in $(seq 1 30); do
+            (echo > /dev/tcp/127.0.0.1/5432) 2>/dev/null && break
+            sleep 1
+          done
+          # database-password は英数字のみで生成している（Terraform の
+          # random_password で special = false）ため URL エンコード不要
           DB_PASSWORD="$(gcloud secrets versions access latest --secret=database-password)"
           DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@127.0.0.1:5432/${DB_NAME}" pnpm db:migrate
 
