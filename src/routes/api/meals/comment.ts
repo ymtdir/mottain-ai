@@ -5,16 +5,22 @@ import { geminiFlash } from "@/server/model/gemini"
 import { learnPreferenceTool } from "@/server/agent/tools/learn-preference"
 
 const bodySchema = z.object({
-  dishTitle: z.string().min(1),
+  dishTitle: z.string().min(1).max(100),
   eatenOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  comment: z.string().min(1),
+  comment: z.string().min(1).max(500),
 })
 
 export const Route = createFileRoute("/api/meals/comment")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const parsed = bodySchema.safeParse(await request.json())
+        let body: unknown
+        try {
+          body = await request.json()
+        } catch {
+          return Response.json({ error: "入力が不正です" }, { status: 400 })
+        }
+        const parsed = bodySchema.safeParse(body)
         if (!parsed.success)
           return Response.json({ error: "入力が不正です" }, { status: 400 })
         const { dishTitle, eatenOn, comment } = parsed.data
