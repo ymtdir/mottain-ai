@@ -4,9 +4,11 @@
 
 ## 前提
 
-- 001（献立コア）・003（食事カレンダー）が動作し、カレンダーに料理が記録済みであること。
+- 001（献立コア）が動作していること。
 - ローカル DB（Cloud SQL 相当の Postgres）に接続でき、`saved_recipes` のマイグレーションが適用済みであること。
 - Gemini Enterprise Agent Platform（Gemini 画像モデル `gemini-3.1-flash-image`）へ ADC で認証できること（`gcloud auth application-default login`、`GOOGLE_CLOUD_PROJECT` / `GOOGLE_CLOUD_LOCATION`）。画像モデルは `global` ロケーション提供のため、必要なら `GOOGLE_CLOUD_IMAGE_LOCATION`（既定 `global`）で上書きする。イラスト生成の検証時のみ必要。
+
+> **Note**: お気に入り登録の入口はカレンダーの料理詳細ダイアログ（US1）。これは 003（食事カレンダー）の実装後に有効になる。003 が未適用の場合は `meal_logs` に直接データを挿入して検証するか、003 を先に適用してから本シナリオを実施する。
 
 ## 実行
 
