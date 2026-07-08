@@ -36,9 +36,19 @@ const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
 function readStoredSidebarWidth(): number | null {
-  const stored = Number(window.localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY))
-  if (!Number.isFinite(stored) || stored <= 0) return null
-  return Math.min(SIDEBAR_WIDTH_MAX_PX, Math.max(SIDEBAR_WIDTH_MIN_PX, stored))
+  try {
+    const stored = Number(
+      window.localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY)
+    )
+    if (!Number.isFinite(stored) || stored <= 0) return null
+    return Math.min(
+      SIDEBAR_WIDTH_MAX_PX,
+      Math.max(SIDEBAR_WIDTH_MIN_PX, stored)
+    )
+  } catch {
+    // プライベートブラウジング等でストレージにアクセスできない場合は無視する
+    return null
+  }
 }
 
 type SidebarContextProps = {
@@ -90,7 +100,11 @@ function SidebarProvider({
       Math.max(SIDEBAR_WIDTH_MIN_PX, value)
     )
     _setWidth(clamped)
-    window.localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(clamped))
+    try {
+      window.localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(clamped))
+    } catch {
+      // プライベートブラウジング等で保存できなくても表示は継続する
+    }
   }, [])
 
   React.useEffect(() => {
@@ -318,6 +332,12 @@ function SidebarResizeHandle({
 }) {
   const widthRef = React.useRef(width)
   widthRef.current = width
+  // ドラッグ中に unmount されても window のリスナーが残らないようにする
+  const cleanupRef = React.useRef<(() => void) | null>(null)
+
+  React.useEffect(() => {
+    return () => cleanupRef.current?.()
+  }, [])
 
   const handlePointerDown = (event: React.PointerEvent) => {
     event.preventDefault()
@@ -340,15 +360,42 @@ function SidebarResizeHandle({
       wrapper?.style.setProperty("--sidebar-width", `${latest}px`)
     }
 
+    const cleanup = () => {
+      window.removeEventListener("pointermove", handlePointerMove)
+      window.removeEventListener("pointerup", handlePointerUp)
+      window.removeEventListener("pointercancel", handlePointerCancel)
+      cleanupRef.current = null
+    }
+
     const handlePointerUp = () => {
       onResizingChange(false)
       onWidthChange(latest)
-      window.removeEventListener("pointermove", handlePointerMove)
-      window.removeEventListener("pointerup", handlePointerUp)
+      cleanup()
     }
 
+    const handlePointerCancel = () => {
+      onResizingChange(false)
+      cleanup()
+    }
+
+    cleanupRef.current = cleanup
     window.addEventListener("pointermove", handlePointerMove)
     window.addEventListener("pointerup", handlePointerUp)
+    window.addEventListener("pointercancel", handlePointerCancel)
+  }
+
+  const WIDTH_STEP = 16
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    const increaseKey = side === "left" ? "ArrowRight" : "ArrowLeft"
+    const decreaseKey = side === "left" ? "ArrowLeft" : "ArrowRight"
+    if (event.key === increaseKey) {
+      event.preventDefault()
+      onWidthChange(widthRef.current + WIDTH_STEP)
+    } else if (event.key === decreaseKey) {
+      event.preventDefault()
+      onWidthChange(widthRef.current - WIDTH_STEP)
+    }
   }
 
   return (
@@ -356,10 +403,15 @@ function SidebarResizeHandle({
       role="separator"
       aria-orientation="vertical"
       aria-label="サイドバーの幅を変更"
+      aria-valuenow={width}
+      aria-valuemin={SIDEBAR_WIDTH_MIN_PX}
+      aria-valuemax={SIDEBAR_WIDTH_MAX_PX}
+      tabIndex={0}
       onPointerDown={handlePointerDown}
+      onKeyDown={handleKeyDown}
       data-slot="sidebar-resize-handle"
       className={cn(
-        "absolute inset-y-0 z-30 w-1 cursor-col-resize touch-none select-none hover:bg-ring/40 active:bg-ring/60",
+        "absolute inset-y-0 z-30 w-1 cursor-col-resize touch-none select-none hover:bg-ring/40 active:bg-ring/60 focus-visible:bg-ring/60 focus-visible:outline-none",
         side === "left" ? "-right-0.5" : "-left-0.5"
       )}
     />
