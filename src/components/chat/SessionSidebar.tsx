@@ -10,16 +10,26 @@ import {
   SlidersHorizontal,
   HeartCrack,
   MessageSquarePlus,
+  LogOut,
+  ChevronUp,
+  User,
 } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
   useSidebar,
 } from "@/components/ui/sidebar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Dialog,
   DialogContent,
@@ -92,6 +102,8 @@ type Props = {
   onAddTendency: (note: string) => void
   onRemoveTendency: (attribute: string) => void
   onRemoveRecipe: (recipeName: string) => void
+  userEmail: string
+  onLogout: () => void
 }
 
 export function SessionSidebar({
@@ -108,6 +120,8 @@ export function SessionSidebar({
   onAddTendency,
   onRemoveTendency,
   onRemoveRecipe,
+  userEmail,
+  onLogout,
 }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState("")
@@ -268,6 +282,31 @@ export function SessionSidebar({
             </SidebarMenu>
           </div>
         </SidebarContent>
+
+        <SidebarFooter className="p-2">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <SidebarMenuButton tooltip={userEmail || "ユーザー"}>
+                    <User size={17} />
+                    <span className="truncate">{userEmail || "ユーザー"}</span>
+                    <ChevronUp className="ml-auto" size={15} />
+                  </SidebarMenuButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="top" className="w-56">
+                  <DropdownMenuItem
+                    onClick={onLogout}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <LogOut size={15} />
+                    ログアウト
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
       </Sidebar>
 
       {/* 好みダイアログ */}

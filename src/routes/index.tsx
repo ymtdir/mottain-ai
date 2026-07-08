@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, useRouter } from "@tanstack/react-router"
 import { useChat } from "@ai-sdk/react"
 import { toast } from "sonner"
 import { useState, useEffect, useCallback, useRef } from "react"
@@ -31,6 +31,7 @@ export const Route = createFileRoute("/")({
 })
 
 function ChatPage() {
+  const router = useRouter()
   const { view: viewParam } = Route.useSearch()
   const [view, setView] = useState<View>(viewParam ?? "chat")
 
@@ -38,6 +39,7 @@ function ChatPage() {
     if (viewParam) setView(viewParam)
   }, [viewParam])
   const [sessions, setSessions] = useState<ChatSession[]>([])
+  const [userEmail, setUserEmail] = useState("")
   const [activeId, setActiveId] = useState<string | null>(null)
   const [constraints, setConstraints] = useState<AvoidanceItem[]>([])
   const [preferences, setPreferences] = useState<PreferenceMemory>({
@@ -84,6 +86,20 @@ function ChatPage() {
       .then((data: ChatSession[]) => setSessions(data))
       .catch(() => {})
   }, [])
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then(({ email }: { email: string }) => {
+        if (email) setUserEmail(email)
+      })
+      .catch(() => {})
+  }, [])
+
+  const handleLogout = useCallback(async () => {
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => {})
+    await router.navigate({ to: "/login" })
+  }, [router])
 
   useEffect(() => {
     loadConstraints()
@@ -341,6 +357,8 @@ function ChatPage() {
         onAddTendency={handleAddTendency}
         onRemoveTendency={handleRemoveTendency}
         onRemoveRecipe={handleRemoveRecipe}
+        userEmail={userEmail}
+        onLogout={handleLogout}
       />
       <SidebarInset className="flex h-svh flex-col">
         <AppHeader
