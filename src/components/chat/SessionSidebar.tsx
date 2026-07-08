@@ -82,7 +82,7 @@ function CollapsedToggle() {
       {hovered ? (
         <PanelLeftOpen size={18} />
       ) : (
-        <img src="/favicon.ico" alt="MottainAI" className="size-4" />
+        <img src="/favicon.png" alt="MottainAI" className="size-7 shrink-0" />
       )}
     </button>
   )
@@ -152,10 +152,10 @@ export function SessionSidebar({
     <>
       <Sidebar collapsible="icon">
         {/* アプリ名 + 開閉トグル */}
-        <SidebarHeader className="px-3 py-3">
+        <SidebarHeader className="px-3 py-3 group-data-[collapsible=icon]:px-0">
           <div className="flex items-center justify-between group-data-[collapsible=icon]:hidden">
             <div className="flex items-center gap-2">
-              <img src="/favicon.ico" alt="" className="size-5 shrink-0" />
+              <img src="/favicon.png" alt="" className="size-7 shrink-0" />
               <span className="font-[family-name:var(--font-display)] text-xl font-bold tracking-wide text-foreground">
                 MottainAI
               </span>
