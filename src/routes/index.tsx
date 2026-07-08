@@ -50,6 +50,10 @@ function ChatPage() {
   const [input, setInput] = useState("")
   const pendingSave = useRef(false)
   const loadingSessionId = useRef<string | null>(null)
+  const pendingTitleRef = useRef<{ sessionId: string; text: string } | null>(
+    null
+  )
+  const prevIsLoadingRef = useRef(false)
 
   const loadPreferences = useCallback(() => {
     fetch("/api/preferences")
@@ -77,10 +81,7 @@ function ChatPage() {
   useEffect(() => {
     fetch("/api/sessions")
       .then((r) => r.json())
-      .then((data: ChatSession[]) => {
-        setSessions(data)
-        if (data.length > 0) loadSession(data[0].id)
-      })
+      .then((data: ChatSession[]) => setSessions(data))
       .catch(() => {})
   }, [])
 
@@ -168,6 +169,29 @@ function ChatPage() {
     }
   }, [isLoading, activeId, messages])
 
+  useEffect(() => {
+    const wasLoading = prevIsLoadingRef.current
+    prevIsLoadingRef.current = isLoading
+    if (wasLoading && !isLoading && pendingTitleRef.current) {
+      const { sessionId, text } = pendingTitleRef.current
+      pendingTitleRef.current = null
+      fetch(`/api/sessions/${sessionId}/generate-title`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ firstMessage: text }),
+      })
+        .then((r) => r.json())
+        .then(({ title }: { title: string }) => {
+          if (title) {
+            setSessions((prev) =>
+              prev.map((s) => (s.id === sessionId ? { ...s, name: title } : s))
+            )
+          }
+        })
+        .catch(() => {})
+    }
+  }, [isLoading])
+
   function loadSession(id: string) {
     setActiveId(id)
     loadingSessionId.current = id
@@ -179,15 +203,8 @@ function ChatPage() {
       .catch(() => {})
   }
 
-  async function handleCreate() {
-    const res = await fetch("/api/sessions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
-    })
-    const session: ChatSession = await res.json()
-    setSessions((prev) => [session, ...prev])
-    setActiveId(session.id)
+  function handleNewChat() {
+    setActiveId(null)
     setMessages([])
     setView("chat")
   }
@@ -284,7 +301,8 @@ function ChatPage() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!input.trim() || isLoading) return
+    const text = input.trim()
+    if (!text || isLoading) return
 
     let sid = activeId
     if (!sid) {
@@ -297,9 +315,9 @@ function ChatPage() {
       setSessions((prev) => [session, ...prev])
       setActiveId(session.id)
       sid = session.id
+      pendingTitleRef.current = { sessionId: session.id, text }
     }
 
-    const text = input.trim()
     setInput("")
     await sendMessage({ text })
   }
@@ -313,7 +331,7 @@ function ChatPage() {
           loadSession(id)
           setView("chat")
         }}
-        onCreate={handleCreate}
+        onNewChat={handleNewChat}
         onRename={handleRename}
         onDelete={handleDelete}
         constraints={constraints}

@@ -1,6 +1,5 @@
 import { useState, useRef } from "react"
 import {
-  Plus,
   Trash2,
   Pencil,
   Check,
@@ -10,11 +9,11 @@ import {
   PanelLeftOpen,
   SlidersHorizontal,
   HeartCrack,
+  MessageSquarePlus,
 } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
@@ -83,7 +82,7 @@ type Props = {
   sessions: ChatSession[]
   activeId: string | null
   onSelect: (id: string) => void
-  onCreate: () => void
+  onNewChat: () => void
   onRename: (id: string, name: string) => void
   onDelete: (id: string) => void
   constraints: AvoidanceItem[]
@@ -99,7 +98,7 @@ export function SessionSidebar({
   sessions,
   activeId,
   onSelect,
-  onCreate,
+  onNewChat,
   onRename,
   onDelete,
   constraints,
@@ -152,103 +151,18 @@ export function SessionSidebar({
           </div>
         </SidebarHeader>
 
-        {/* 会話履歴ラベル + 新規作成 */}
-        <SidebarHeader className="px-3 py-2">
-          <div className="flex items-center justify-between group-data-[collapsible=icon]:justify-center">
-            <span className="text-xs font-semibold text-muted-foreground group-data-[collapsible=icon]:hidden">
-              会話履歴
-            </span>
-            <button
-              onClick={onCreate}
-              className="rounded p-1 text-muted-foreground hover:bg-muted"
-              aria-label="新しい会話"
-            >
-              <Plus size={17} />
-            </button>
-          </div>
-        </SidebarHeader>
-
-        <SidebarContent className="p-2 group-data-[collapsible=icon]:hidden">
+        <SidebarContent className="p-2">
           <SidebarMenu className="gap-1">
-            {sessions.map((s) => (
-              <SidebarMenuItem key={s.id}>
-                {editingId === s.id ? (
-                  <div className="flex items-center gap-1 px-2 py-1.5">
-                    <input
-                      autoFocus
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      onCompositionStart={() => {
-                        isComposing.current = true
-                      }}
-                      onCompositionEnd={() => {
-                        isComposing.current = false
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !isComposing.current) {
-                          e.preventDefault()
-                          commitEdit(s.id)
-                        }
-                        if (e.key === "Escape") setEditingId(null)
-                      }}
-                      className="min-w-0 flex-1 rounded border border-input bg-background px-1.5 py-0.5 text-xs focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
-                    />
-                    <button
-                      onClick={() => commitEdit(s.id)}
-                      className="text-primary hover:text-primary/80"
-                      aria-label="確定"
-                    >
-                      <Check size={15} />
-                    </button>
-                    <button
-                      onClick={() => setEditingId(null)}
-                      className="text-muted-foreground hover:text-foreground"
-                      aria-label="キャンセル"
-                    >
-                      <X size={15} />
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <SidebarMenuButton
-                      isActive={s.id === activeId}
-                      onClick={() => onSelect(s.id)}
-                      tooltip={s.name}
-                    >
-                      <span>{s.name}</span>
-                    </SidebarMenuButton>
-                    <div className="absolute top-1/2 right-1 hidden -translate-y-1/2 items-center gap-0.5 group-hover/menu-item:flex">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          startEdit(s)
-                        }}
-                        className="rounded p-0.5 text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                        aria-label="名前を変更"
-                      >
-                        <Pencil size={14} />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setDeletingSession(s)
-                        }}
-                        className="rounded p-0.5 text-muted-foreground hover:bg-sidebar-accent hover:text-destructive"
-                        aria-label={`${s.name}を削除`}
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </>
-                )}
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarContent>
-
-        {/* 設定メニュー */}
-        <SidebarFooter className="p-2">
-          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                isActive={activeId === null}
+                onClick={onNewChat}
+                tooltip="新しいチャット"
+              >
+                <MessageSquarePlus size={17} />
+                <span>新しいチャット</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={() => setPrefsOpen(true)}
@@ -268,7 +182,92 @@ export function SessionSidebar({
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
-        </SidebarFooter>
+
+          {/* 会話履歴: 折りたたみ時は非表示 */}
+          <div className="group-data-[collapsible=icon]:hidden">
+            {sessions.length > 0 && (
+              <p className="mt-3 mb-2 px-2 text-xs font-semibold text-muted-foreground">
+                会話履歴
+              </p>
+            )}
+            <SidebarMenu className="gap-1">
+              {sessions.map((s) => (
+                <SidebarMenuItem key={s.id}>
+                  {editingId === s.id ? (
+                    <div className="flex items-center gap-1 px-2 py-1.5">
+                      <input
+                        autoFocus
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        onCompositionStart={() => {
+                          isComposing.current = true
+                        }}
+                        onCompositionEnd={() => {
+                          isComposing.current = false
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !isComposing.current) {
+                            e.preventDefault()
+                            commitEdit(s.id)
+                          }
+                          if (e.key === "Escape") setEditingId(null)
+                        }}
+                        className="min-w-0 flex-1 rounded border border-input bg-background px-1.5 py-0.5 text-xs focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
+                      />
+                      <button
+                        onClick={() => commitEdit(s.id)}
+                        className="text-primary hover:text-primary/80"
+                        aria-label="確定"
+                      >
+                        <Check size={15} />
+                      </button>
+                      <button
+                        onClick={() => setEditingId(null)}
+                        className="text-muted-foreground hover:text-foreground"
+                        aria-label="キャンセル"
+                      >
+                        <X size={15} />
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <SidebarMenuButton
+                        isActive={s.id === activeId}
+                        onClick={() => onSelect(s.id)}
+                        tooltip={s.name}
+                        className="group-hover/menu-item:pr-14"
+                      >
+                        <span className="truncate">{s.name}</span>
+                      </SidebarMenuButton>
+                      <div className="absolute top-1/2 right-1 hidden -translate-y-1/2 items-center gap-0.5 group-hover/menu-item:flex">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            startEdit(s)
+                          }}
+                          className="rounded p-0.5 text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                          aria-label="名前を変更"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setDeletingSession(s)
+                          }}
+                          className="rounded p-0.5 text-muted-foreground hover:bg-sidebar-accent hover:text-destructive"
+                          aria-label={`${s.name}を削除`}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </div>
+        </SidebarContent>
       </Sidebar>
 
       {/* 好みダイアログ */}
