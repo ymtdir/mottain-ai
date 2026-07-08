@@ -186,13 +186,9 @@ export function SessionSidebar({
           {/* 会話履歴: 折りたたみ時は非表示 */}
           <div className="group-data-[collapsible=icon]:hidden">
             {sessions.length > 0 && (
-              <div className="mx-1 mt-3 mb-1 flex items-center gap-2">
-                <div className="flex-1 border-t border-border" />
-                <span className="text-xs font-semibold text-muted-foreground">
-                  会話履歴
-                </span>
-                <div className="flex-1 border-t border-border" />
-              </div>
+              <p className="px-2 pt-3 pb-1 text-xs font-semibold text-muted-foreground">
+                会話履歴
+              </p>
             )}
             <SidebarMenu className="gap-1">
               {sessions.map((s) => (
