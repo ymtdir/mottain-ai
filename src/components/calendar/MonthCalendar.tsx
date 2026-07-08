@@ -62,7 +62,7 @@ export function MonthCalendar({
         >
           <ChevronLeft size={18} />
         </button>
-        <h2 className="text-base font-semibold">{formatMonth(month)}</h2>
+        <h2 className="text-base font-medium">{formatMonth(month)}</h2>
         <button
           onClick={onNextMonth}
           className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"

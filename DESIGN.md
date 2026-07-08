@@ -30,12 +30,12 @@ typography:
   h1:
     fontFamily: Inter Variable
     fontSize: 2rem
-    fontWeight: 700
+    fontWeight: 600
     lineHeight: 1.2
   h2:
     fontFamily: Inter Variable
     fontSize: 1.5rem
-    fontWeight: 600
+    fontWeight: 500
     lineHeight: 1.3
   body:
     fontFamily: Inter Variable
