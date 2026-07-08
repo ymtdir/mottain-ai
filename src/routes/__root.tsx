@@ -1,4 +1,9 @@
-import { HeadContent, Scripts, createRootRoute, redirect } from "@tanstack/react-router"
+import {
+  HeadContent,
+  Scripts,
+  createRootRoute,
+  redirect,
+} from "@tanstack/react-router"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from "sonner"
 import { checkAuthFn } from "../server/services/auth-check"
