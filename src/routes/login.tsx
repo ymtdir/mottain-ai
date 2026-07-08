@@ -1,11 +1,18 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router"
+import { createFileRoute, useRouter, redirect } from "@tanstack/react-router"
 import { useState } from "react"
 import type { FormEvent } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import { checkAuthFn } from "../server/services/auth-check"
 
-export const Route = createFileRoute("/login")({ component: LoginPage })
+export const Route = createFileRoute("/login")({
+  beforeLoad: async () => {
+    const { authenticated } = await checkAuthFn()
+    if (authenticated) throw redirect({ to: "/" })
+  },
+  component: LoginPage,
+})
 
 function LoginPage() {
   const router = useRouter()
