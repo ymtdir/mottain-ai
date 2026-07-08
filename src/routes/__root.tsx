@@ -1,10 +1,16 @@
-import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router"
+import { HeadContent, Scripts, createRootRoute, redirect } from "@tanstack/react-router"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from "sonner"
+import { checkAuthFn } from "../server/services/auth-check"
 
 import appCss from "../styles.css?url"
 
 export const Route = createRootRoute({
+  beforeLoad: async ({ location }) => {
+    if (location.pathname.startsWith("/login")) return
+    const { authenticated } = await checkAuthFn()
+    if (!authenticated) throw redirect({ to: "/login" })
+  },
   head: () => ({
     meta: [
       {
