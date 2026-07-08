@@ -4,6 +4,10 @@ import { reviseMealPlan } from "../../services/meal-plan-revise"
 import { computeShoppingList } from "../../services/shopping-list"
 import { getConstraints } from "../../services/dietary-constraint"
 import {
+  getPreference,
+  buildPreferenceContext,
+} from "../../services/preference"
+import {
   checkMealPlanViolations,
   checkShoppingListViolations,
 } from "../../services/avoidance-guard"
@@ -62,12 +66,15 @@ export const reviseMealPlanTool = tool({
     preferenceNote,
   }) => {
     const avoidanceItems = await getConstraints()
+    const preferenceMemory = await getPreference()
+    const preferenceContext = buildPreferenceContext(preferenceMemory)
 
     const updatedMealPlan = await reviseMealPlan({
       currentMealPlan,
       request: { targetDays, instruction, preferenceNote },
       inventory,
       avoidanceItems,
+      preferenceContext,
     })
 
     const updatedShoppingList = computeShoppingList(updatedMealPlan, inventory)

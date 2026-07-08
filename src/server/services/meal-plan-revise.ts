@@ -36,7 +36,8 @@ function buildRevisionPrompt(
   currentMealPlan: MealPlan,
   request: RevisionRequest,
   inventory: InventoryItem[],
-  avoidanceItems?: AvoidanceConstraint[]
+  avoidanceItems?: AvoidanceConstraint[],
+  preferenceContext?: string
 ): string {
   const currentMeals = currentMealPlan.meals
     .map((m) => {
@@ -89,6 +90,14 @@ function buildRevisionPrompt(
     )
   }
 
+  if (preferenceContext && preferenceContext.trim() !== "") {
+    parts.push(
+      "",
+      "## ユーザーの好み（ソフト・可能な範囲で反映）",
+      preferenceContext
+    )
+  }
+
   parts.push(
     "",
     `変更対象の日（${targetDaysText}）の新しいレシピだけを返してください。`
@@ -106,8 +115,15 @@ export async function reviseMealPlan(params: {
   request: RevisionRequest
   inventory: InventoryItem[]
   avoidanceItems?: AvoidanceConstraint[]
+  preferenceContext?: string
 }): Promise<MealPlan> {
-  const { currentMealPlan, request, inventory, avoidanceItems } = params
+  const {
+    currentMealPlan,
+    request,
+    inventory,
+    avoidanceItems,
+    preferenceContext,
+  } = params
 
   const { object } = await generateObject({
     model: geminiFlash(),
@@ -116,7 +132,8 @@ export async function reviseMealPlan(params: {
       currentMealPlan,
       request,
       inventory,
-      avoidanceItems
+      avoidanceItems,
+      preferenceContext
     ),
   })
 
