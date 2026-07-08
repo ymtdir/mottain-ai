@@ -7,11 +7,12 @@ import {
   PanelLeft,
   PanelLeftClose,
   PanelLeftOpen,
-  SlidersHorizontal,
-  HeartCrack,
+  Utensils,
+  Ban,
   MessageSquarePlus,
   LogOut,
   ChevronUp,
+  ChevronLeft,
   User,
 } from "lucide-react"
 import {
@@ -76,7 +77,7 @@ function CollapsedToggle() {
       onClick={toggleSidebar}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+      className="flex size-8 items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground"
       aria-label="サイドバーを開く"
     >
       {hovered ? (
@@ -135,6 +136,7 @@ export function SessionSidebar({
   if (deletingSession) deletingSessionRef.current = deletingSession
   const [constraintsOpen, setConstraintsOpen] = useState(false)
   const [prefsOpen, setPrefsOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
   const isComposing = useRef(false)
 
   function startEdit(s: ChatSession) {
@@ -152,7 +154,7 @@ export function SessionSidebar({
     <>
       <Sidebar collapsible="icon">
         {/* アプリ名 + 開閉トグル */}
-        <SidebarHeader className="px-3 py-3 group-data-[collapsible=icon]:px-0">
+        <SidebarHeader className="px-3 py-3 group-data-[collapsible=icon]:p-2">
           <div className="flex items-center justify-between group-data-[collapsible=icon]:hidden">
             <div className="flex items-center gap-2">
               <img src="/favicon.png" alt="" className="size-7 shrink-0" />
@@ -162,7 +164,7 @@ export function SessionSidebar({
             </div>
             <ExpandedToggle />
           </div>
-          <div className="hidden justify-center group-data-[collapsible=icon]:flex">
+          <div className="hidden group-data-[collapsible=icon]:flex">
             <CollapsedToggle />
           </div>
         </SidebarHeader>
@@ -184,7 +186,7 @@ export function SessionSidebar({
                 onClick={() => setPrefsOpen(true)}
                 tooltip="食の好み"
               >
-                <SlidersHorizontal size={17} />
+                <Utensils size={17} />
                 <span>食の好み</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -193,7 +195,7 @@ export function SessionSidebar({
                 onClick={() => setConstraintsOpen(true)}
                 tooltip="苦手なもの"
               >
-                <HeartCrack size={17} />
+                <Ban size={17} />
                 <span>苦手なもの</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -288,7 +290,7 @@ export function SessionSidebar({
         <SidebarFooter className="p-2">
           <SidebarMenu>
             <SidebarMenuItem>
-              <DropdownMenu>
+              <DropdownMenu open={userMenuOpen} onOpenChange={setUserMenuOpen}>
                 <DropdownMenuTrigger asChild>
                   <SidebarMenuButton
                     tooltip={userName || userEmail || "ユーザー"}
@@ -297,7 +299,11 @@ export function SessionSidebar({
                     <span className="truncate">
                       {userName || userEmail || "ユーザー"}
                     </span>
-                    <ChevronUp className="ml-auto" size={15} />
+                    {userMenuOpen ? (
+                      <ChevronUp className="ml-auto" size={15} />
+                    ) : (
+                      <ChevronLeft className="ml-auto" size={15} />
+                    )}
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
