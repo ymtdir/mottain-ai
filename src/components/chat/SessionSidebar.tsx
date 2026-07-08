@@ -233,8 +233,9 @@ export function SessionSidebar({
                         isActive={s.id === activeId}
                         onClick={() => onSelect(s.id)}
                         tooltip={s.name}
+                        className="group-hover/menu-item:pr-14"
                       >
-                        <span>{s.name}</span>
+                        <span className="truncate">{s.name}</span>
                       </SidebarMenuButton>
                       <div className="absolute top-1/2 right-1 hidden -translate-y-1/2 items-center gap-0.5 group-hover/menu-item:flex">
                         <button
