@@ -300,7 +300,10 @@ export function SessionSidebar({
                     <ChevronUp className="ml-auto" size={15} />
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent side="top" className="w-56">
+                <DropdownMenuContent
+                  side="top"
+                  className="w-56 bg-sidebar text-sidebar-foreground ring-sidebar-border"
+                >
                   <DropdownMenuItem
                     onClick={onLogout}
                     className="text-destructive focus:text-destructive"
