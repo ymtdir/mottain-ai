@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { getSessionToken, verifySessionToken } from "../../../server/services/auth"
+import {
+  getSessionToken,
+  verifySessionToken,
+} from "../../../server/services/auth"
 
 export const Route = createFileRoute("/api/auth/me")({
   server: {
