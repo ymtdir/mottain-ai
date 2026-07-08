@@ -33,7 +33,7 @@ export async function loadUserContext(): Promise<UserContext> {
 
 export function buildSystemPrompt(ctx: UserContext): string {
   const parts: string[] = [
-    "あなたは献立エージェントです。ユーザーが伝えた在庫を使い切ることを優先し、N日分の夕食献立と不足食材の買い物リストを提案します。",
+    "あなたは献立エージェントです。ユーザーが伝えた在庫が余らないことを優先し、N日分の夕食献立と不足食材の買い物リストを提案します。",
   ]
 
   // 回避制約（ハード）— 好みより常に優先する（FR-024）
