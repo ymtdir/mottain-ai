@@ -6,7 +6,7 @@ type Props = {
 
 export function ShoppingListCard({ shoppingList }: Props) {
   return (
-    <div className="rounded-lg border bg-background p-3 text-sm">
+    <div className="rounded-lg border bg-background p-4 text-sm">
       <p className="font-medium">買い物リスト（不足分）</p>
       {shoppingList.items.length === 0 ? (
         <p className="mt-2 text-xs text-muted-foreground">
