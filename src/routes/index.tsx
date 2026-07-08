@@ -40,6 +40,7 @@ function ChatPage() {
   }, [viewParam])
   const [sessions, setSessions] = useState<ChatSession[]>([])
   const [userEmail, setUserEmail] = useState("")
+  const [userName, setUserName] = useState("")
   const [activeId, setActiveId] = useState<string | null>(null)
   const [constraints, setConstraints] = useState<AvoidanceItem[]>([])
   const [preferences, setPreferences] = useState<PreferenceMemory>({
@@ -90,8 +91,9 @@ function ChatPage() {
   useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => r.json())
-      .then(({ email }: { email: string }) => {
+      .then(({ email, name }: { email: string; name: string }) => {
         if (email) setUserEmail(email)
+        if (name) setUserName(name)
       })
       .catch(() => {})
   }, [])
@@ -358,6 +360,7 @@ function ChatPage() {
         onRemoveTendency={handleRemoveTendency}
         onRemoveRecipe={handleRemoveRecipe}
         userEmail={userEmail}
+        userName={userName}
         onLogout={handleLogout}
       />
       <SidebarInset className="flex h-svh flex-col">

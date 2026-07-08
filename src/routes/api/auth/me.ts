@@ -12,7 +12,10 @@ export const Route = createFileRoute("/api/auth/me")({
         const token = getSessionToken(cookie)
         if (!token || !verifySessionToken(token))
           return Response.json({ error: "Unauthorized" }, { status: 401 })
-        return Response.json({ email: process.env.DEMO_EMAIL ?? "" })
+        return Response.json({
+          email: process.env.DEMO_EMAIL ?? "",
+          name: process.env.DEMO_NAME ?? "",
+        })
       },
     },
   },

@@ -103,6 +103,7 @@ type Props = {
   onRemoveTendency: (attribute: string) => void
   onRemoveRecipe: (recipeName: string) => void
   userEmail: string
+  userName: string
   onLogout: () => void
 }
 
@@ -121,6 +122,7 @@ export function SessionSidebar({
   onRemoveTendency,
   onRemoveRecipe,
   userEmail,
+  userName,
   onLogout,
 }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -288,9 +290,13 @@ export function SessionSidebar({
             <SidebarMenuItem>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <SidebarMenuButton tooltip={userEmail || "ユーザー"}>
+                  <SidebarMenuButton
+                    tooltip={userName || userEmail || "ユーザー"}
+                  >
                     <User size={17} />
-                    <span className="truncate">{userEmail || "ユーザー"}</span>
+                    <span className="truncate">
+                      {userName || userEmail || "ユーザー"}
+                    </span>
                     <ChevronUp className="ml-auto" size={15} />
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>
