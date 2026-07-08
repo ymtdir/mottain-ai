@@ -140,7 +140,7 @@ export function SessionSidebar({
           <div className="flex items-center justify-between group-data-[collapsible=icon]:hidden">
             <div className="flex items-center gap-2">
               <img src="/favicon.ico" alt="" className="size-5 shrink-0" />
-              <span className="font-[family-name:var(--font-display)] text-lg font-semibold tracking-wide text-foreground">
+              <span className="font-[family-name:var(--font-display)] text-lg font-medium tracking-wide text-foreground">
                 MottainAI
               </span>
             </div>
