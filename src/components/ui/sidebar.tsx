@@ -411,7 +411,7 @@ function SidebarResizeHandle({
       onKeyDown={handleKeyDown}
       data-slot="sidebar-resize-handle"
       className={cn(
-        "absolute inset-y-0 z-30 w-1 cursor-col-resize touch-none select-none hover:bg-ring/40 active:bg-ring/60 focus-visible:bg-ring/60 focus-visible:outline-none",
+        "absolute inset-y-0 z-30 w-1 cursor-col-resize touch-none select-none hover:bg-ring/40 focus-visible:bg-ring/60 focus-visible:outline-none active:bg-ring/60",
         side === "left" ? "-right-0.5" : "-left-0.5"
       )}
     />
