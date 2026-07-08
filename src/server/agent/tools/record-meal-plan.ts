@@ -24,6 +24,13 @@ const inputSchema = z.object({
     .array(mealSchema)
     .min(1)
     .describe("承認された献立の各料理。会話中の最新の献立からそのまま転記する"),
+  startDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional()
+    .describe(
+      "献立の開始日（YYYY-MM-DD）。「3日後から」「来月15日から」などユーザーが指定した場合に設定する。省略時は当日起点"
+    ),
   overwriteDates: z
     .array(z.string())
     .optional()
@@ -34,10 +41,15 @@ const inputSchema = z.object({
 
 export const recordMealPlanTool = tool({
   description:
-    "ユーザーが提案された献立を承認したときに、各料理を食事カレンダーに記録する（meal_logs への INSERT）。承認をはっきり検知したときのみ呼ぶ。提案中・修正中・曖昧な会話では呼ばない。承認日を起点に連続日で記録される。既存記録との衝突がある場合は conflicts を返すので、ユーザーに上書きするか確認してから overwriteDates を指定して再度呼ぶ。",
+    "ユーザーが提案された献立を承認したときに、各料理を食事カレンダーに記録する（meal_logs への INSERT）。承認をはっきり検知したときのみ呼ぶ。提案中・修正中・曖昧な会話では呼ばない。startDate を省略すると当日起点、「3日後から」「来月15日から」などの指定があれば該当日を startDate に設定する。既存記録との衝突がある場合は conflicts を返すので、ユーザーに上書きするか確認してから overwriteDates を指定して再度呼ぶ。",
   inputSchema,
-  execute: async ({ meals, overwriteDates }) => {
-    const approvalDate = todayInTokyo()
+  execute: async ({ meals, startDate, overwriteDates }) => {
+    const approvalDate = startDate
+      ? (() => {
+          const [y, m, d] = startDate.split("-").map(Number)
+          return new Date(Date.UTC(y, m - 1, d))
+        })()
+      : todayInTokyo()
     const contents: { day: number; content: MealLogContent }[] = meals.map(
       (m) => ({
         day: m.day,
