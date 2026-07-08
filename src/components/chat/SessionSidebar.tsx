@@ -7,8 +7,8 @@ import {
   PanelLeft,
   PanelLeftClose,
   PanelLeftOpen,
-  SlidersHorizontal,
-  HeartCrack,
+  Utensils,
+  Ban,
   MessageSquarePlus,
   LogOut,
   ChevronUp,
@@ -186,7 +186,7 @@ export function SessionSidebar({
                 onClick={() => setPrefsOpen(true)}
                 tooltip="食の好み"
               >
-                <SlidersHorizontal size={17} />
+                <Utensils size={17} />
                 <span>食の好み</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -195,7 +195,7 @@ export function SessionSidebar({
                 onClick={() => setConstraintsOpen(true)}
                 tooltip="苦手なもの"
               >
-                <HeartCrack size={17} />
+                <Ban size={17} />
                 <span>苦手なもの</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
