@@ -64,7 +64,7 @@ export function MealPlanCard({ mealPlan }: Props) {
         {groups.map((group) => (
           <div
             key={group.days.join("-")}
-            className="rounded-lg border bg-background p-3 text-sm"
+            className="rounded-lg border bg-background p-4 text-sm"
           >
             <div className="flex items-baseline gap-2">
               <span className="text-xs text-muted-foreground">
@@ -101,7 +101,7 @@ export function MealPlanCard({ mealPlan }: Props) {
             )}
 
             {group.notes && (
-              <p className="mt-2 rounded bg-amber-50 px-2 py-1 text-xs text-amber-700">
+              <p className="mt-2 rounded bg-accent px-2 py-1 text-xs text-accent-foreground">
                 ⚠️ {group.notes}
               </p>
             )}

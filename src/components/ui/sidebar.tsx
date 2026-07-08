@@ -27,10 +27,29 @@ import { PanelLeftIcon } from "lucide-react"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
-const SIDEBAR_WIDTH = "16rem"
+const SIDEBAR_WIDTH_PX = 256
+const SIDEBAR_WIDTH_MIN_PX = 200
+const SIDEBAR_WIDTH_MAX_PX = 400
+const SIDEBAR_WIDTH_STORAGE_KEY = "sidebar_width"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
+
+function readStoredSidebarWidth(): number | null {
+  try {
+    const stored = Number(
+      window.localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY)
+    )
+    if (!Number.isFinite(stored) || stored <= 0) return null
+    return Math.min(
+      SIDEBAR_WIDTH_MAX_PX,
+      Math.max(SIDEBAR_WIDTH_MIN_PX, stored)
+    )
+  } catch {
+    // プライベートブラウジング等でストレージにアクセスできない場合は無視する
+    return null
+  }
+}
 
 type SidebarContextProps = {
   state: "expanded" | "collapsed"
@@ -40,6 +59,8 @@ type SidebarContextProps = {
   setOpenMobile: (open: boolean) => void
   isMobile: boolean
   toggleSidebar: () => void
+  width: number
+  setWidth: (width: number) => void
 }
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null)
@@ -68,6 +89,28 @@ function SidebarProvider({
 }) {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
+
+  // ドラッグでリサイズ可能な幅（px）。ローカルストレージに永続化する。
+  // SSR とのハイドレーション不一致を避けるため、初期値は常にデフォルトにし、
+  // マウント後に保存済みの幅があれば読み込む。
+  const [width, _setWidth] = React.useState(SIDEBAR_WIDTH_PX)
+  const setWidth = React.useCallback((value: number) => {
+    const clamped = Math.min(
+      SIDEBAR_WIDTH_MAX_PX,
+      Math.max(SIDEBAR_WIDTH_MIN_PX, value)
+    )
+    _setWidth(clamped)
+    try {
+      window.localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(clamped))
+    } catch {
+      // プライベートブラウジング等で保存できなくても表示は継続する
+    }
+  }, [])
+
+  React.useEffect(() => {
+    const stored = readStoredSidebarWidth()
+    if (stored !== null) _setWidth(stored)
+  }, [])
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
@@ -122,8 +165,20 @@ function SidebarProvider({
       openMobile,
       setOpenMobile,
       toggleSidebar,
+      width,
+      setWidth,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+    [
+      state,
+      open,
+      setOpen,
+      isMobile,
+      openMobile,
+      setOpenMobile,
+      toggleSidebar,
+      width,
+      setWidth,
+    ]
   )
 
   return (
@@ -132,7 +187,7 @@ function SidebarProvider({
         data-slot="sidebar-wrapper"
         style={
           {
-            "--sidebar-width": SIDEBAR_WIDTH,
+            "--sidebar-width": `${width}px`,
             "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
             ...style,
           } as React.CSSProperties
@@ -162,7 +217,9 @@ function Sidebar({
   variant?: "sidebar" | "floating" | "inset"
   collapsible?: "offcanvas" | "icon" | "none"
 }) {
-  const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+  const { isMobile, state, openMobile, setOpenMobile, width, setWidth } =
+    useSidebar()
+  const [isResizing, setIsResizing] = React.useState(false)
 
   if (collapsible === "none") {
     return (
@@ -212,6 +269,7 @@ function Sidebar({
       data-collapsible={state === "collapsed" ? collapsible : ""}
       data-variant={variant}
       data-side={side}
+      data-resizing={isResizing}
       data-slot="sidebar"
     >
       {/* This is what handles the sidebar gap on desktop */}
@@ -221,6 +279,7 @@ function Sidebar({
           "relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear",
           "group-data-[collapsible=offcanvas]:w-0",
           "group-data-[side=right]:rotate-180",
+          "group-data-[resizing=true]:transition-none",
           variant === "floating" || variant === "inset"
             ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]"
             : "group-data-[collapsible=icon]:w-(--sidebar-width-icon)"
@@ -230,7 +289,8 @@ function Sidebar({
         data-slot="sidebar-container"
         data-side={side}
         className={cn(
-          "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear data-[side=left]:left-0 data-[side=left]:group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)] data-[side=right]:right-0 data-[side=right]:group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)] md:flex",
+          "fixed inset-y-0 z-20 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear data-[side=left]:left-0 data-[side=left]:group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)] data-[side=right]:right-0 data-[side=right]:group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)] md:flex",
+          "group-data-[resizing=true]:transition-none",
           // Adjust the padding for floating and inset variants.
           variant === "floating" || variant === "inset"
             ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]"
@@ -246,8 +306,115 @@ function Sidebar({
         >
           {children}
         </div>
+        {state === "expanded" && (
+          <SidebarResizeHandle
+            side={side}
+            width={width}
+            onWidthChange={setWidth}
+            onResizingChange={setIsResizing}
+          />
+        )}
       </div>
     </div>
+  )
+}
+
+function SidebarResizeHandle({
+  side,
+  width,
+  onWidthChange,
+  onResizingChange,
+}: {
+  side: "left" | "right"
+  width: number
+  onWidthChange: (width: number) => void
+  onResizingChange: (resizing: boolean) => void
+}) {
+  const widthRef = React.useRef(width)
+  widthRef.current = width
+  // ドラッグ中に unmount されても window のリスナーが残らないようにする
+  const cleanupRef = React.useRef<(() => void) | null>(null)
+
+  React.useEffect(() => {
+    return () => cleanupRef.current?.()
+  }, [])
+
+  const handlePointerDown = (event: React.PointerEvent) => {
+    event.preventDefault()
+    onResizingChange(true)
+    const startX = event.clientX
+    const startWidth = widthRef.current
+    // ドラッグ中は state を更新せず、CSS 変数を直接書き換えて
+    // サイドバー全体の再レンダリングを避ける（体感の引っかかり対策）。
+    const wrapper = (event.target as HTMLElement).closest<HTMLElement>(
+      '[data-slot="sidebar-wrapper"]'
+    )
+    let latest = startWidth
+
+    const clamp = (value: number) =>
+      Math.min(SIDEBAR_WIDTH_MAX_PX, Math.max(SIDEBAR_WIDTH_MIN_PX, value))
+
+    const handlePointerMove = (moveEvent: PointerEvent) => {
+      const delta = moveEvent.clientX - startX
+      latest = clamp(side === "left" ? startWidth + delta : startWidth - delta)
+      wrapper?.style.setProperty("--sidebar-width", `${latest}px`)
+    }
+
+    const cleanup = () => {
+      window.removeEventListener("pointermove", handlePointerMove)
+      window.removeEventListener("pointerup", handlePointerUp)
+      window.removeEventListener("pointercancel", handlePointerCancel)
+      cleanupRef.current = null
+    }
+
+    const handlePointerUp = () => {
+      onResizingChange(false)
+      onWidthChange(latest)
+      cleanup()
+    }
+
+    const handlePointerCancel = () => {
+      onResizingChange(false)
+      cleanup()
+    }
+
+    cleanupRef.current = cleanup
+    window.addEventListener("pointermove", handlePointerMove)
+    window.addEventListener("pointerup", handlePointerUp)
+    window.addEventListener("pointercancel", handlePointerCancel)
+  }
+
+  const WIDTH_STEP = 16
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    const increaseKey = side === "left" ? "ArrowRight" : "ArrowLeft"
+    const decreaseKey = side === "left" ? "ArrowLeft" : "ArrowRight"
+    if (event.key === increaseKey) {
+      event.preventDefault()
+      onWidthChange(widthRef.current + WIDTH_STEP)
+    } else if (event.key === decreaseKey) {
+      event.preventDefault()
+      onWidthChange(widthRef.current - WIDTH_STEP)
+    }
+  }
+
+  return (
+    <div
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="サイドバーの幅を変更"
+      aria-valuenow={width}
+      aria-valuemin={SIDEBAR_WIDTH_MIN_PX}
+      aria-valuemax={SIDEBAR_WIDTH_MAX_PX}
+      tabIndex={0}
+      onPointerDown={handlePointerDown}
+      onKeyDown={handleKeyDown}
+      data-slot="sidebar-resize-handle"
+      className={cn(
+        "absolute inset-y-0 z-30 w-1 cursor-col-resize touch-none select-none hover:bg-ring/40 focus-visible:bg-ring/60 focus-visible:outline-none active:bg-ring/60",
+        side === "left" ? "-right-0.5" : "-left-0.5"
+      )}
+    />
   )
 }
 

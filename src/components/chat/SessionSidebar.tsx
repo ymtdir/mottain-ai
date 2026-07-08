@@ -140,7 +140,7 @@ export function SessionSidebar({
           <div className="flex items-center justify-between group-data-[collapsible=icon]:hidden">
             <div className="flex items-center gap-2">
               <img src="/favicon.ico" alt="" className="size-5 shrink-0" />
-              <span className="font-[family-name:var(--font-display)] text-lg font-bold tracking-wide text-foreground">
+              <span className="font-[family-name:var(--font-display)] text-xl font-bold tracking-wide text-foreground">
                 MottainAI
               </span>
             </div>
@@ -186,7 +186,7 @@ export function SessionSidebar({
           {/* 会話履歴: 折りたたみ時は非表示 */}
           <div className="group-data-[collapsible=icon]:hidden">
             {sessions.length > 0 && (
-              <p className="mt-3 mb-2 px-2 text-xs font-semibold text-muted-foreground">
+              <p className="mt-3 mb-2 px-2 text-xs font-medium text-muted-foreground">
                 会話履歴
               </p>
             )}

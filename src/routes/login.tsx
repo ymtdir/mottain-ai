@@ -51,7 +51,7 @@ function LoginPage() {
         {/* ロゴ */}
         <div className="mb-8 flex flex-col items-center gap-2">
           <img src="/favicon.ico" alt="MottainAI" className="size-10" />
-          <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold tracking-wide text-foreground">
+          <h1 className="font-[family-name:var(--font-display)] text-2xl font-medium tracking-wide text-foreground">
             MottainAI
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -61,7 +61,7 @@ function LoginPage() {
 
         {/* カード */}
         <div className="rounded-xl border border-border bg-card p-8 shadow-sm">
-          <h2 className="mb-6 text-center text-base font-semibold text-foreground">
+          <h2 className="mb-6 text-center text-base font-medium text-foreground">
             ログイン
           </h2>
 

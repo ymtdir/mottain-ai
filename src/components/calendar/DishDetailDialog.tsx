@@ -170,8 +170,8 @@ export function DishDetailDialog({
                   disabled={saving || saved}
                   className={`flex items-center gap-1 rounded px-2 py-1 text-xs transition-colors ${
                     saved
-                      ? "cursor-default text-rose-500"
-                      : "text-muted-foreground hover:bg-rose-50 hover:text-rose-500"
+                      ? "cursor-default text-primary"
+                      : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
                   }`}
                 >
                   <Heart size={13} fill={saved ? "currentColor" : "none"} />
