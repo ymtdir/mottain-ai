@@ -186,7 +186,7 @@ export function SessionSidebar({
           {/* 会話履歴: 折りたたみ時は非表示 */}
           <div className="group-data-[collapsible=icon]:hidden">
             {sessions.length > 0 && (
-              <p className="px-2 pt-3 pb-1 text-xs font-semibold text-muted-foreground">
+              <p className="px-2 pt-4 pb-2 text-xs font-semibold text-muted-foreground">
                 会話履歴
               </p>
             )}
