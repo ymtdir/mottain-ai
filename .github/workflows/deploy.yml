@@ -77,5 +77,5 @@ jobs:
             --region "${REGION}" \
             --platform managed \
             --add-cloudsql-instances "${PROJECT_ID}:${REGION}:${SERVICE}-pg" \
-            --set-env-vars "GOOGLE_CLOUD_PROJECT=${PROJECT_ID},DB_SOCKET_PATH=/cloudsql/${PROJECT_ID}:${REGION}:${SERVICE}-pg" \
-            --set-secrets "DATABASE_URL=database-url:latest"
+            --set-env-vars "GOOGLE_CLOUD_PROJECT=${PROJECT_ID},DB_SOCKET_PATH=/cloudsql/${PROJECT_ID}:${REGION}:${SERVICE}-pg,DEMO_NAME=demo" \
+            --set-secrets "DATABASE_URL=database-url:latest,SESSION_SECRET=session-secret:latest,DEMO_EMAIL=demo@example.com:latest,DEMO_PASSWORD=demo-password:latest"
