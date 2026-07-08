@@ -18,6 +18,7 @@ const pgBytea = customType<{ data: Buffer; driverData: Buffer }>({
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

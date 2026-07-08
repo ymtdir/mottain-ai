@@ -21,7 +21,7 @@ export function ChatInput({
   return (
     <form onSubmit={onSubmit} className="relative p-4">
       <textarea
-        className="w-full resize-none rounded-xl border bg-background px-4 py-3 pr-12 text-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
+        className="w-full resize-none rounded-xl border bg-card px-4 py-3 pr-12 text-sm placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
         rows={4}
         value={input}
         placeholder="在庫を伝えて献立を依頼しましょう（例: じゃがいも、人参、玉ねぎがあります。3日分の夕食を考えて）"
