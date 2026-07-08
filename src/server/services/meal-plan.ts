@@ -165,7 +165,8 @@ function buildMealPlanPrompt(
   inventory: InventoryItem[],
   days: number,
   avoidanceItems?: AvoidanceConstraint[],
-  userContext?: string
+  userContext?: string,
+  preferenceContext?: string
 ): string {
   const inventoryText =
     inventory.length > 0
@@ -208,6 +209,14 @@ function buildMealPlanPrompt(
     )
   }
 
+  if (preferenceContext && preferenceContext.trim() !== "") {
+    parts.push(
+      "",
+      "## ユーザーの好み（ソフト・可能な範囲で反映）",
+      preferenceContext
+    )
+  }
+
   if (userContext && userContext.trim() !== "") {
     parts.push("", "## ユーザーの文脈", userContext)
   }
@@ -225,13 +234,21 @@ export async function generateMealPlan(params: {
   days: number
   avoidanceItems?: AvoidanceConstraint[]
   userContext?: string
+  preferenceContext?: string
 }): Promise<MealPlan> {
-  const { inventory, days, avoidanceItems, userContext } = params
+  const { inventory, days, avoidanceItems, userContext, preferenceContext } =
+    params
 
   const { object } = await generateObject({
     model: geminiFlash(),
     schema: generatedMealPlanSchema,
-    prompt: buildMealPlanPrompt(inventory, days, avoidanceItems, userContext),
+    prompt: buildMealPlanPrompt(
+      inventory,
+      days,
+      avoidanceItems,
+      userContext,
+      preferenceContext
+    ),
   })
 
   const meals: Recipe[] = object.meals.map((meal, index) => ({

@@ -13,6 +13,10 @@ import { validateDays, generateMealPlan } from "../../services/meal-plan"
 import { computeShoppingList } from "../../services/shopping-list"
 import { getConstraints } from "../../services/dietary-constraint"
 import {
+  getPreference,
+  buildPreferenceContext,
+} from "../../services/preference"
+import {
   checkMealPlanViolations,
   checkShoppingListViolations,
   formatViolationMessage,
@@ -40,12 +44,15 @@ export const generateMealPlanTool = tool({
     const inventory = normalizeInventory(items)
     const validation = validateDays(requestedDays)
     const avoidanceItems = await getConstraints()
+    const preferenceMemory = await getPreference()
+    const preferenceContext = buildPreferenceContext(preferenceMemory)
 
     // 1回目の生成（プロンプトで回避を指示）
     let mealPlan = await generateMealPlan({
       inventory,
       days: validation.days,
       avoidanceItems,
+      preferenceContext,
     })
     let shoppingList = computeShoppingList(mealPlan, inventory)
 
@@ -68,6 +75,7 @@ export const generateMealPlanTool = tool({
         days: validation.days,
         avoidanceItems,
         userContext: retryContext,
+        preferenceContext,
       })
       shoppingList = computeShoppingList(mealPlan, inventory)
 
