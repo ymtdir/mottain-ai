@@ -175,15 +175,20 @@ function ChatPage() {
     if (wasLoading && !isLoading && pendingTitleRef.current) {
       const { sessionId, text } = pendingTitleRef.current
       pendingTitleRef.current = null
-      const title = text.length > 24 ? text.slice(0, 24) + "…" : text
-      fetch(`/api/sessions/${sessionId}`, {
-        method: "PATCH",
+      fetch(`/api/sessions/${sessionId}/generate-title`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: title }),
-      }).catch(() => {})
-      setSessions((prev) =>
-        prev.map((s) => (s.id === sessionId ? { ...s, name: title } : s))
-      )
+        body: JSON.stringify({ firstMessage: text }),
+      })
+        .then((r) => r.json())
+        .then(({ title }: { title: string }) => {
+          if (title) {
+            setSessions((prev) =>
+              prev.map((s) => (s.id === sessionId ? { ...s, name: title } : s))
+            )
+          }
+        })
+        .catch(() => {})
     }
   }, [isLoading])
 
