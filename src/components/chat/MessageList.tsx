@@ -126,7 +126,7 @@ export function MessageList({ messages, status }: Props) {
                       </p>
                     )}
                     {output.violationNote && (
-                      <p className="rounded bg-red-50 px-2 py-1 text-xs text-red-700">
+                      <p className="rounded bg-destructive/10 px-2 py-1 text-xs text-destructive">
                         ⚠️ {output.violationNote}
                       </p>
                     )}
@@ -145,7 +145,7 @@ export function MessageList({ messages, status }: Props) {
                 return (
                   <div key={index} className="flex flex-col gap-3">
                     {output.violationNote && (
-                      <p className="rounded bg-red-50 px-2 py-1 text-xs text-red-700">
+                      <p className="rounded bg-destructive/10 px-2 py-1 text-xs text-destructive">
                         ⚠️ {output.violationNote}
                       </p>
                     )}
@@ -161,7 +161,7 @@ export function MessageList({ messages, status }: Props) {
                 return (
                   <p
                     key={index}
-                    className="rounded bg-red-50 px-2 py-1 text-xs text-red-700"
+                    className="rounded bg-destructive/10 px-2 py-1 text-xs text-destructive"
                   >
                     ツールの実行中にエラーが発生しました。
                   </p>

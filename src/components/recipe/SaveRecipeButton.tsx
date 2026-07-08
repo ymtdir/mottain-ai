@@ -65,8 +65,8 @@ export function SaveRecipeButton({ content, isSaved, onSave }: Props) {
       aria-label={saved ? "お気に入り登録済み" : "お気に入りに登録"}
       className={`flex items-center gap-1 rounded px-2 py-0.5 text-xs transition-colors ${
         saved
-          ? "cursor-default text-rose-500"
-          : "text-muted-foreground hover:bg-rose-50 hover:text-rose-500"
+          ? "cursor-default text-primary"
+          : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
       }`}
     >
       <Heart size={13} fill={saved ? "currentColor" : "none"} />

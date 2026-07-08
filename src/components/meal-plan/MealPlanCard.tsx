@@ -101,7 +101,7 @@ export function MealPlanCard({ mealPlan }: Props) {
             )}
 
             {group.notes && (
-              <p className="mt-2 rounded bg-amber-50 px-2 py-1 text-xs text-amber-700">
+              <p className="mt-2 rounded bg-accent px-2 py-1 text-xs text-accent-foreground">
                 ⚠️ {group.notes}
               </p>
             )}
