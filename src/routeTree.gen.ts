@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiSessionsRouteImport } from './routes/api/sessions'
 import { Route as ApiRecipesRouteImport } from './routes/api/recipes'
@@ -20,9 +21,16 @@ import { Route as ApiSessionsSessionIdRouteImport } from './routes/api/sessions/
 import { Route as ApiRecipesIdRouteImport } from './routes/api/recipes/$id'
 import { Route as ApiMealsCommentRouteImport } from './routes/api/meals/comment'
 import { Route as ApiMealsIdRouteImport } from './routes/api/meals/$id'
+import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
+import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
 import { Route as ApiSessionsSessionIdGenerateTitleRouteImport } from './routes/api/sessions/$sessionId.generate-title'
 import { Route as ApiRecipesIdIllustrationRouteImport } from './routes/api/recipes/$id.illustration'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -78,6 +86,16 @@ const ApiMealsIdRoute = ApiMealsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiMealsRoute,
 } as any)
+const ApiAuthLogoutRoute = ApiAuthLogoutRouteImport.update({
+  id: '/api/auth/logout',
+  path: '/api/auth/logout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
+  id: '/api/auth/login',
+  path: '/api/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiSessionsSessionIdGenerateTitleRoute =
   ApiSessionsSessionIdGenerateTitleRouteImport.update({
     id: '/generate-title',
@@ -93,12 +111,15 @@ const ApiRecipesIdIllustrationRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
   '/api/chat': typeof ApiChatRoute
   '/api/constraints': typeof ApiConstraintsRoute
   '/api/meals': typeof ApiMealsRouteWithChildren
   '/api/preferences': typeof ApiPreferencesRoute
   '/api/recipes': typeof ApiRecipesRouteWithChildren
   '/api/sessions': typeof ApiSessionsRouteWithChildren
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/meals/$id': typeof ApiMealsIdRoute
   '/api/meals/comment': typeof ApiMealsCommentRoute
   '/api/recipes/$id': typeof ApiRecipesIdRouteWithChildren
@@ -108,12 +129,15 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
   '/api/chat': typeof ApiChatRoute
   '/api/constraints': typeof ApiConstraintsRoute
   '/api/meals': typeof ApiMealsRouteWithChildren
   '/api/preferences': typeof ApiPreferencesRoute
   '/api/recipes': typeof ApiRecipesRouteWithChildren
   '/api/sessions': typeof ApiSessionsRouteWithChildren
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/meals/$id': typeof ApiMealsIdRoute
   '/api/meals/comment': typeof ApiMealsCommentRoute
   '/api/recipes/$id': typeof ApiRecipesIdRouteWithChildren
@@ -124,12 +148,15 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
   '/api/chat': typeof ApiChatRoute
   '/api/constraints': typeof ApiConstraintsRoute
   '/api/meals': typeof ApiMealsRouteWithChildren
   '/api/preferences': typeof ApiPreferencesRoute
   '/api/recipes': typeof ApiRecipesRouteWithChildren
   '/api/sessions': typeof ApiSessionsRouteWithChildren
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/meals/$id': typeof ApiMealsIdRoute
   '/api/meals/comment': typeof ApiMealsCommentRoute
   '/api/recipes/$id': typeof ApiRecipesIdRouteWithChildren
@@ -141,12 +168,15 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/login'
     | '/api/chat'
     | '/api/constraints'
     | '/api/meals'
     | '/api/preferences'
     | '/api/recipes'
     | '/api/sessions'
+    | '/api/auth/login'
+    | '/api/auth/logout'
     | '/api/meals/$id'
     | '/api/meals/comment'
     | '/api/recipes/$id'
@@ -156,12 +186,15 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/login'
     | '/api/chat'
     | '/api/constraints'
     | '/api/meals'
     | '/api/preferences'
     | '/api/recipes'
     | '/api/sessions'
+    | '/api/auth/login'
+    | '/api/auth/logout'
     | '/api/meals/$id'
     | '/api/meals/comment'
     | '/api/recipes/$id'
@@ -171,12 +204,15 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/login'
     | '/api/chat'
     | '/api/constraints'
     | '/api/meals'
     | '/api/preferences'
     | '/api/recipes'
     | '/api/sessions'
+    | '/api/auth/login'
+    | '/api/auth/logout'
     | '/api/meals/$id'
     | '/api/meals/comment'
     | '/api/recipes/$id'
@@ -187,16 +223,26 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LoginRoute: typeof LoginRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiConstraintsRoute: typeof ApiConstraintsRoute
   ApiMealsRoute: typeof ApiMealsRouteWithChildren
   ApiPreferencesRoute: typeof ApiPreferencesRoute
   ApiRecipesRoute: typeof ApiRecipesRouteWithChildren
   ApiSessionsRoute: typeof ApiSessionsRouteWithChildren
+  ApiAuthLoginRoute: typeof ApiAuthLoginRoute
+  ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -273,6 +319,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/meals/$id'
       preLoaderRoute: typeof ApiMealsIdRouteImport
       parentRoute: typeof ApiMealsRoute
+    }
+    '/api/auth/logout': {
+      id: '/api/auth/logout'
+      path: '/api/auth/logout'
+      fullPath: '/api/auth/logout'
+      preLoaderRoute: typeof ApiAuthLogoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/login': {
+      id: '/api/auth/login'
+      path: '/api/auth/login'
+      fullPath: '/api/auth/login'
+      preLoaderRoute: typeof ApiAuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/sessions/$sessionId/generate-title': {
       id: '/api/sessions/$sessionId/generate-title'
@@ -355,12 +415,15 @@ const ApiSessionsRouteWithChildren = ApiSessionsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LoginRoute: LoginRoute,
   ApiChatRoute: ApiChatRoute,
   ApiConstraintsRoute: ApiConstraintsRoute,
   ApiMealsRoute: ApiMealsRouteWithChildren,
   ApiPreferencesRoute: ApiPreferencesRoute,
   ApiRecipesRoute: ApiRecipesRouteWithChildren,
   ApiSessionsRoute: ApiSessionsRouteWithChildren,
+  ApiAuthLoginRoute: ApiAuthLoginRoute,
+  ApiAuthLogoutRoute: ApiAuthLogoutRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
