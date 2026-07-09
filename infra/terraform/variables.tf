@@ -35,7 +35,7 @@ variable "allow_unauthenticated" {
 }
 
 variable "enable_cloud_sql" {
-  description = "Cloud SQL for PostgreSQL を作成するか（必要になったら true）"
+  description = "Cloud SQL for PostgreSQL を作成するか（アプリの動作に必須のため既定は true）"
   type        = bool
   default     = true
 }
