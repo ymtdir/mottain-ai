@@ -4,7 +4,7 @@ import { recordMeals } from "../../services/meal-log"
 import type { MealLogContent } from "../../services/meal-log"
 import { todayInTokyo } from "../../../lib/date"
 
-const mealSchema = z.object({
+export const mealSchema = z.object({
   day: z.number().int().min(1).describe("何日目か（1 始まり）"),
   title: z.string().min(1).describe("料理名"),
   ingredients: z
