@@ -40,11 +40,12 @@ export function DishDetailDialog({
   savedRecipes,
 }: Props) {
   const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(() =>
+  const [manualSaved, setManualSaved] = useState(false)
+  const saved =
+    manualSaved ||
     savedRecipes.some(
       (r) => r.normalizedTitle === normalizeTitle(log.content.title)
     )
-  )
   const [comment, setComment] = useState("")
   const [sending, setSending] = useState(false)
 
@@ -61,7 +62,7 @@ export function DishDetailDialog({
         toast.error("お気に入り登録に失敗しました。もう一度お試しください。")
         return
       }
-      setSaved(true)
+      setManualSaved(true)
       onSaveRecipe(log)
       toast.success(`「${log.content.title}」をお気に入りに登録しました。`)
     } catch {
