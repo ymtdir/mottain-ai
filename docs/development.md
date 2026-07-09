@@ -54,7 +54,7 @@ gcloud auth application-default set-quota-project <プロジェクトID>
 ### 5. DB マイグレーションを実行する
 
 ```sh
-pnpm drizzle-kit migrate    # DB に適用（drizzle/ 以下のファイルを順に実行）
+pnpm db:migrate    # DB に適用（drizzle/ 以下のファイルを順に実行）
 ```
 
 ## Spec Kit
@@ -103,7 +103,7 @@ terraform plan
 terraform apply
 ```
 
-DB が必要になったら `terraform.tfvars` の `enable_cloud_sql = true` にして再度 `apply` する。
+Cloud SQL（PostgreSQL）はアプリの動作に必須のため、`terraform.tfvars` の `enable_cloud_sql` は既定で `true` になっている。
 
 ### CD の有効化（初回のみ）
 
