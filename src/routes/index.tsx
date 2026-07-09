@@ -390,6 +390,7 @@ function ChatPage() {
               onNextMonth={nextMonth}
               onDeleteLog={handleDeleteMealLog}
               onSaveRecipe={() => loadSavedRecipes()}
+              savedRecipes={savedRecipes}
             />
           </main>
         ) : (

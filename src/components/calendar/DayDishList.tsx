@@ -1,14 +1,21 @@
 import { useState } from "react"
 import type { MealLog } from "@/server/services/meal-log"
+import type { SavedRecipeListItem } from "@/server/services/saved-recipe"
 import { DishDetailDialog } from "./DishDetailDialog"
 
 type Props = {
   logs: MealLog[]
   onDeleteLog: (id: string) => void
   onSaveRecipe: (log: MealLog) => void
+  savedRecipes: SavedRecipeListItem[]
 }
 
-export function DayDishList({ logs, onDeleteLog, onSaveRecipe }: Props) {
+export function DayDishList({
+  logs,
+  onDeleteLog,
+  onSaveRecipe,
+  savedRecipes,
+}: Props) {
   const [selected, setSelected] = useState<MealLog | null>(null)
 
   return (
@@ -40,6 +47,7 @@ export function DayDishList({ logs, onDeleteLog, onSaveRecipe }: Props) {
           onSaveRecipe={(log) => {
             onSaveRecipe(log)
           }}
+          savedRecipes={savedRecipes}
         />
       )}
     </>

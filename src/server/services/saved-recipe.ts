@@ -4,6 +4,9 @@ import { eq, and, or, lt, inArray, desc } from "drizzle-orm"
 import { FIXED_USER_ID } from "../db/constants"
 import { ensureUser } from "../db/ensure-user"
 import { generateIllustration } from "./illustration"
+import { normalizeTitle } from "../../lib/recipe"
+
+export { normalizeTitle } from "../../lib/recipe"
 
 export type IllustrationStatus = "pending" | "generating" | "ready" | "failed"
 
@@ -23,10 +26,6 @@ export type SavedRecipeListItem = {
   illustrationError: string | null
   createdAt: Date
   updatedAt: Date
-}
-
-export function normalizeTitle(title: string): string {
-  return title.trim().replace(/\s+/g, " ")
 }
 
 export function validateContent(

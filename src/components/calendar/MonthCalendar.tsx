@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import type { MealLog } from "@/server/services/meal-log"
+import type { SavedRecipeListItem } from "@/server/services/saved-recipe"
 import { todayInTokyo, toDateString } from "@/lib/date"
 import { DayDishList } from "./DayDishList"
 
@@ -10,6 +11,7 @@ type Props = {
   onNextMonth: () => void
   onDeleteLog: (id: string) => void
   onSaveRecipe: (log: MealLog) => void
+  savedRecipes: SavedRecipeListItem[]
 }
 
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"]
@@ -40,6 +42,7 @@ export function MonthCalendar({
   onNextMonth,
   onDeleteLog,
   onSaveRecipe,
+  savedRecipes,
 }: Props) {
   const cells = buildCalendarDays(month)
   const today = todayString()
@@ -105,6 +108,7 @@ export function MonthCalendar({
                   logs={dayLogs}
                   onDeleteLog={onDeleteLog}
                   onSaveRecipe={onSaveRecipe}
+                  savedRecipes={savedRecipes}
                 />
               )}
             </div>

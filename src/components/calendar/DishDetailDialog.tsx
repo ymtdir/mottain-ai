@@ -19,6 +19,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import type { MealLog } from "@/server/services/meal-log"
+import type { SavedRecipeListItem } from "@/server/services/saved-recipe"
+import { normalizeTitle } from "@/lib/recipe"
 
 type Props = {
   log: MealLog
@@ -26,6 +28,7 @@ type Props = {
   onOpenChange: (open: boolean) => void
   onDelete: (id: string) => void
   onSaveRecipe: (log: MealLog) => void
+  savedRecipes: SavedRecipeListItem[]
 }
 
 export function DishDetailDialog({
@@ -34,9 +37,14 @@ export function DishDetailDialog({
   onOpenChange,
   onDelete,
   onSaveRecipe,
+  savedRecipes,
 }: Props) {
   const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
+  const [saved, setSaved] = useState(() =>
+    savedRecipes.some(
+      (r) => r.normalizedTitle === normalizeTitle(log.content.title)
+    )
+  )
   const [comment, setComment] = useState("")
   const [sending, setSending] = useState(false)
 
