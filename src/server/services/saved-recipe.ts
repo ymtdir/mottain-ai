@@ -25,9 +25,8 @@ export type SavedRecipeListItem = {
   updatedAt: Date
 }
 
-export function normalizeTitle(title: string): string {
-  return title.trim().replace(/\s+/g, " ")
-}
+export { normalizeTitle } from "../../lib/recipe"
+import { normalizeTitle } from "../../lib/recipe"
 
 export function validateContent(
   content: SavedRecipeContent

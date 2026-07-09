@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import type { MealLog } from "@/server/services/meal-log"
 import type { SavedRecipeListItem } from "@/server/services/saved-recipe"
-import { normalizeTitle } from "@/server/services/saved-recipe"
+import { normalizeTitle } from "@/lib/recipe"
 
 type Props = {
   log: MealLog
