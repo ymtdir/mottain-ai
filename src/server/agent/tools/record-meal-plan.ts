@@ -14,8 +14,12 @@ const mealSchema = z.object({
         amount: z.string().nullable().describe("分量の目安。不明なら null"),
       })
     )
-    .describe("材料"),
-  steps: z.array(z.string()).describe("調理手順"),
+    .min(1)
+    .describe("材料（必ず1件以上。繰り返し日でも省略しない）"),
+  steps: z
+    .array(z.string().min(1))
+    .min(1)
+    .describe("調理手順（必ず1件以上。繰り返し日でも省略しない）"),
   notes: z.string().nullable().describe("日持ち注意など。無ければ null"),
 })
 
